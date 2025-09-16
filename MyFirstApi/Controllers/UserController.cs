@@ -52,4 +52,12 @@ public class UserController : ControllerBase
     {
         return NoContent();
     }
+
+    [HttpDelete]
+    [Route("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult DeleteUser([FromRoute] int id)
+    {
+        return NoContent();
+    }
 }
