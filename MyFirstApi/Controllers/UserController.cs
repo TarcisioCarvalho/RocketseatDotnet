@@ -44,4 +44,12 @@ public class UserController : ControllerBase
         // Here you would normally save the user to a database
         return Created(string.Empty, response);
     }
+
+    [HttpPut]
+    [Route("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult UpdateUser([FromRoute] int id,[FromBody] RequestUpdateUserProfileJson request)
+    {
+        return NoContent();
+    }
 }
