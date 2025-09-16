@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MyFirstApi.Comunnication.Requests;
+using MyFirstApi.Comunnication.Response;
 
 namespace MyFirstApi.Controllers;
 [Route("api/[controller]")]
@@ -23,5 +25,23 @@ public class UserController : ControllerBase
             return NotFound("User not found");
         }
         return Ok(user);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(ResponseRegisterUserJson),StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(string),StatusCodes.Status400BadRequest)]
+    public IActionResult RegisterUser([FromBody] RequestRegisterUserJson request)
+    {
+        if(string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest("Invalid user data");
+        }
+        var response = new ResponseRegisterUserJson
+        {
+            Id = 4,
+            Name = request.Name
+        };
+        // Here you would normally save the user to a database
+        return Created(string.Empty, response);
     }
 }
