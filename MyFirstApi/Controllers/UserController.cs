@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyFirstApi.Comunnication.Requests;
 using MyFirstApi.Comunnication.Response;
+using MyFirstApi.Models;
 
 namespace MyFirstApi.Controllers;
 [Route("api/[controller]")]
@@ -8,9 +9,15 @@ namespace MyFirstApi.Controllers;
 public class UserController : ControllerBase
 {
     [HttpGet]
+    [ProducesResponseType(typeof(List<User>), StatusCodes.Status200OK) ]
     public IActionResult GetUsers()
     {
-        var users = new List<string> { "Alice", "Bob", "Charlie" };
+        var users = new List<User> 
+        { 
+            new User { Name = "User1", Email = "aa", Password = "pass1" },
+            new User { Name = "User2", Email = "bb", Password = "pass2" },
+            new User { Name = "User3", Email = "cc", Password = "pass3" }
+        };
         return Ok(users);
     }
     [HttpGet]
@@ -60,4 +67,14 @@ public class UserController : ControllerBase
     {
         return NoContent();
     }
+
+    [HttpPut]
+    [Route("change-password/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult ChangePassword([FromRoute] int id,[FromBody] RequestChangePasswordJson request)
+    {
+            return NoContent();
+    }
+
+
 }
