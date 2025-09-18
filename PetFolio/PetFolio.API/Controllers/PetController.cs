@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PetFolio.Application.UseCases.Pet.GetAll;
+using PetFolio.Application.UseCases.Pet.GetById;
 using PetFolio.Application.UseCases.Pet.Register;
 using PetFolio.Application.UseCases.Pet.Update;
 using PetFolio.Communication.Requests;
@@ -38,5 +39,14 @@ public class PetController : ControllerBase
         return Created(string.Empty, response);
 
         return NoContent();
+    }
+    [HttpGet]
+    [Route("{id}")]
+    [ProducesResponseType(typeof(ResponsePetJson),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
+    public IActionResult Get([FromRoute] int id) 
+    {
+        var response = new GetByIdUseCase().Execute(id);
+        return Ok(response);
     }
 }
