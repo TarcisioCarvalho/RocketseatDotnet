@@ -7,7 +7,7 @@ public class GetByIdUseCase
     {
         return new ResponsePetJson()
         {
-            Id = 1,
+            Id = id,
             BirthDate = new DateTime(year:2020, month:1, day: 1),
             Name = "Test",
             PetType = Communication.Enums.PetType.cat
