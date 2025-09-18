@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PetFolio.Application.UseCases.Pet.Register;
+using PetFolio.Application.UseCases.Pet.Update;
 using PetFolio.Communication.Requests;
 using PetFolio.Communication.Response;
 
@@ -10,10 +10,18 @@ namespace PetFolio.API.Controllers;
 public class PetController : ControllerBase
 {
     [HttpPost]
-    [ProducesResponseType(typeof(ResponseRegisterPetJson),StatusCodes.Status201Created)]
-    public IActionResult RegisterPet([FromBody] RequestRegisterPetJson request)
+    [ProducesResponseType(typeof(ResponseRegisterPetJson), StatusCodes.Status201Created)]
+    public IActionResult RegisterPet([FromBody] RequestPetJson request)
     {
         var response = new RegisterPetUseCase().Execute(request);
-        return Created(string.Empty,response);
+        return Created(string.Empty, response);
+    }
+    [HttpPut]
+    [Route("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult UpdatePet([FromRoute]int id,[FromBody] RequestPetJson request) 
+    {
+        new UpdatePetUseCase().Execute(id, request);
+        return NoContent();
     }
 }
