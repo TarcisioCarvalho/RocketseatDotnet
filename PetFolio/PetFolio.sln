@@ -3,7 +3,31 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36429.23 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetFolio.API", "PetFolio.API\PetFolio.API.csproj", "{4FD128CA-5164-4A24-BAA4-A691688760D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetFolio.Communication", "PetFolio.Communication\PetFolio.Communication.csproj", "{31BE5687-26B1-4A16-A093-29C07A7EDAF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetFolio.Application", "PetFolio.Application\PetFolio.Application.csproj", "{83E2CFB0-39F5-47F5-A4E8-8F37AF44C12C}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4FD128CA-5164-4A24-BAA4-A691688760D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FD128CA-5164-4A24-BAA4-A691688760D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FD128CA-5164-4A24-BAA4-A691688760D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FD128CA-5164-4A24-BAA4-A691688760D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31BE5687-26B1-4A16-A093-29C07A7EDAF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31BE5687-26B1-4A16-A093-29C07A7EDAF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31BE5687-26B1-4A16-A093-29C07A7EDAF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31BE5687-26B1-4A16-A093-29C07A7EDAF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83E2CFB0-39F5-47F5-A4E8-8F37AF44C12C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2CFB0-39F5-47F5-A4E8-8F37AF44C12C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83E2CFB0-39F5-47F5-A4E8-8F37AF44C12C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E2CFB0-39F5-47F5-A4E8-8F37AF44C12C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

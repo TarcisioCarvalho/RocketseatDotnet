@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PetFolio.Communication\PetFolio.Communication.csproj" />
+  </ItemGroup>
+
 </Project>
