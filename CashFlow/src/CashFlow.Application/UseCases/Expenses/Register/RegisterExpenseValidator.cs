@@ -1,4 +1,5 @@
 ﻿using CashFlow.Communication.Requests;
+using CashFlow.Exception;
 using FluentValidation;
 
 namespace CashFlow.Application.UseCases.Expenses.Register;
@@ -7,17 +8,17 @@ public class RegisterExpenseValidator : AbstractValidator<RequestRegisterExpense
     public RegisterExpenseValidator()
     {
         RuleFor(x => x.Title)
-            .NotEmpty().WithMessage("Title is required.")
-            .MaximumLength(100).WithMessage("Title must not exceed 100 characters.");
+            .NotEmpty().WithMessage(ResourceErrorsMessages.TITLE_REQUIRED)
+            .MaximumLength(100).WithMessage(ResourceErrorsMessages.TITLE_CHARACTERS_LIMIT);
         RuleFor(x => x.Description)
-            .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
+            .MaximumLength(500).WithMessage(ResourceErrorsMessages.DESCRIPTION_CHARACTERS_LIMIT);
         RuleFor(x => x.Date)
-            .NotEmpty().WithMessage("Date is required.")
-            .LessThanOrEqualTo(DateTime.Now).WithMessage("Date cannot be in the future.");
+            .NotEmpty().WithMessage(ResourceErrorsMessages.DATE_REQUIRED)
+            .LessThanOrEqualTo(DateTime.Now).WithMessage(ResourceErrorsMessages.EXPENSES_CANNOT_FOR_THE_FUTURE);
         RuleFor(x => x.Value)
-            .GreaterThan(0).WithMessage("Value must be greater than zero.");
+            .GreaterThan(0).WithMessage(ResourceErrorsMessages.VALUE_MUST_BE_GRATER_THAN_ZERO);
         RuleFor(x => x.PaymentType)
-            .IsInEnum().WithMessage("Invalid payment type.");
+            .IsInEnum().WithMessage(ResourceErrorsMessages.PAYMENT_TYPE_INVALID);
     }
 
   
