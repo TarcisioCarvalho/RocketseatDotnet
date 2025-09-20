@@ -12,16 +12,7 @@ public class ExpenseController : ControllerBase
     [HttpPost]
     public IActionResult Register([FromBody] RequestRegisterExpenseJson request)
     {
-		try
-		{
-            var response = new RegisterExpenseUseCase().Execute(request);
-            return Created(string.Empty, response);
-        }
-		catch (ErrorOnValidationException ex)
-		{
-            var response = new ResponseErrorJson(ex.Errors);
-            return BadRequest(response);
-        }
-     
+        var response = new RegisterExpenseUseCase().Execute(request);
+        return Created(string.Empty, response);
     }
 }
