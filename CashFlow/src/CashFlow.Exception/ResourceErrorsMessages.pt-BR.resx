@@ -118,27 +118,27 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DATE_REQUIRED" xml:space="preserve">
-    <value>La date est requise.</value>
+    <value>A data é obrigatoria.</value>
   </data>
   <data name="DESCRIPTION_CHARACTERS_LIMIT" xml:space="preserve">
-    <value>La description ne doit pas dépasser 500 caractères.</value>
+    <value>A descrição não pode exceder 500 caracteres.</value>
   </data>
   <data name="EXPENSES_CANNOT_FOR_THE_FUTURE" xml:space="preserve">
-    <value>La date ne peut pas être dans le futur.</value>
+    <value>As despesas não podem ser para o futuro.</value>
   </data>
   <data name="PAYMENT_TYPE_INVALID" xml:space="preserve">
-    <value>Type de paiement invalide.</value>
+    <value>Tipo de pagamento invalido.</value>
   </data>
   <data name="TITLE_CHARACTERS_LIMIT" xml:space="preserve">
-    <value>Le titre ne doit pas dépasser 100 caractères.</value>
+    <value>O titulo não pode exceder 100 caracteres.</value>
   </data>
   <data name="TITLE_REQUIRED" xml:space="preserve">
-    <value>Le titre est requis.</value>
+    <value>O titulo é obrigatorio.</value>
   </data>
   <data name="UNKNOW_ERROR" xml:space="preserve">
-    <value>erreur inconnue.</value>
+    <value>Erro desconhecido.</value>
   </data>
   <data name="VALUE_MUST_BE_GRATER_THAN_ZERO" xml:space="preserve">
-    <value>La valeur doit être supérieure à zéro..</value>
+    <value>O valor deve ser maior que zero.</value>
   </data>
 </root>

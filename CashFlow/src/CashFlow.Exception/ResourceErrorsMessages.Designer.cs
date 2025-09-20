@@ -61,7 +61,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Date is required..
+        ///   Looks up a localized string similar to La date est requise..
         /// </summary>
         public static string DATE_REQUIRED {
             get {
@@ -70,7 +70,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Description must not exceed 500 characters..
+        ///   Looks up a localized string similar to La description ne doit pas dépasser 500 caractères..
         /// </summary>
         public static string DESCRIPTION_CHARACTERS_LIMIT {
             get {
@@ -79,7 +79,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Date cannot be in the future..
+        ///   Looks up a localized string similar to La date ne peut pas être dans le futur..
         /// </summary>
         public static string EXPENSES_CANNOT_FOR_THE_FUTURE {
             get {
@@ -88,7 +88,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid payment type..
+        ///   Looks up a localized string similar to Type de paiement invalide..
         /// </summary>
         public static string PAYMENT_TYPE_INVALID {
             get {
@@ -97,7 +97,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Title must not exceed 100 characters..
+        ///   Looks up a localized string similar to Le titre ne doit pas dépasser 100 caractères..
         /// </summary>
         public static string TITLE_CHARACTERS_LIMIT {
             get {
@@ -106,7 +106,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Title is required..
+        ///   Looks up a localized string similar to Le titre est requis..
         /// </summary>
         public static string TITLE_REQUIRED {
             get {
@@ -115,7 +115,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to unknow error.
+        ///   Looks up a localized string similar to erreur inconnue..
         /// </summary>
         public static string UNKNOW_ERROR {
             get {
@@ -124,7 +124,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value must be greater than zero..
+        ///   Looks up a localized string similar to La valeur doit être supérieure à zéro...
         /// </summary>
         public static string VALUE_MUST_BE_GRATER_THAN_ZERO {
             get {

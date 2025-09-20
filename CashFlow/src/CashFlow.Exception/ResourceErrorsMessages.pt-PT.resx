@@ -117,28 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="a" xml:space="preserve">
+    <value />
+  </data>
   <data name="DATE_REQUIRED" xml:space="preserve">
-    <value>La date est requise.</value>
+    <value>Por favor, indique a data.</value>
   </data>
   <data name="DESCRIPTION_CHARACTERS_LIMIT" xml:space="preserve">
-    <value>La description ne doit pas dépasser 500 caractères.</value>
+    <value>A descrição é demasiado longa (máximo 500 caracteres).</value>
   </data>
   <data name="EXPENSES_CANNOT_FOR_THE_FUTURE" xml:space="preserve">
-    <value>La date ne peut pas être dans le futur.</value>
+    <value>A data escolhida não pode ser no futuro.</value>
   </data>
   <data name="PAYMENT_TYPE_INVALID" xml:space="preserve">
-    <value>Type de paiement invalide.</value>
+    <value>Por favor, selecione um método de pagamento válido.</value>
   </data>
   <data name="TITLE_CHARACTERS_LIMIT" xml:space="preserve">
-    <value>Le titre ne doit pas dépasser 100 caractères.</value>
+    <value>O título é demasiado longo (máximo 100 caracteres).</value>
   </data>
   <data name="TITLE_REQUIRED" xml:space="preserve">
-    <value>Le titre est requis.</value>
+    <value>Por favor, insira um título.</value>
   </data>
   <data name="UNKNOW_ERROR" xml:space="preserve">
-    <value>erreur inconnue.</value>
+    <value>Ocorreu um erro inesperado.</value>
   </data>
   <data name="VALUE_MUST_BE_GRATER_THAN_ZERO" xml:space="preserve">
-    <value>La valeur doit être supérieure à zéro..</value>
+    <value>O valor tem de ser maior do que zero.</value>
   </data>
 </root>
