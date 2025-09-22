@@ -5,7 +5,7 @@ using CashFlow.Communication.Requests;
 namespace CommonTestUtilities.Requests;
 public class RequestRegisterExpenseJsonBuilder
 {
-    public RequestRegisterExpenseJson Build()
+    public static RequestRegisterExpenseJson Build()
     {
         var faker = new Faker();
         return new Faker<RequestRegisterExpenseJson>()
@@ -14,5 +14,6 @@ public class RequestRegisterExpenseJsonBuilder
             .RuleFor(r => r.Date, faker.Date.Past())
             .RuleFor(r => r.PaymentType, faker.PickRandom<PaymentType>())
             .RuleFor(r => r.Value, faker.Random.Decimal(min: 1, max: 100));
+
     }
 }
