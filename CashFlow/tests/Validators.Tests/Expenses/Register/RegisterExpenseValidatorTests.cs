@@ -33,4 +33,15 @@ public class RegisterExpenseValidatorTests
         Assert.Single(result.Errors);
         Assert.Equal(ResourceErrorsMessages.TITLE_REQUIRED, result.Errors[0].ErrorMessage);
     }
+    [Fact]
+    public void Error_Title_TooLong()
+    {
+        var validator = new RegisterExpenseValidator();
+        var request = RequestRegisterExpenseJsonBuilder.Build();
+        request.Title = new string('a', 101);
+        var result = validator.Validate(request);
+        Assert.False(result.IsValid);
+        Assert.Single(result.Errors);
+        Assert.Equal(ResourceErrorsMessages.TITLE_CHARACTERS_LIMIT, result.Errors[0].ErrorMessage);
+    }
 }
