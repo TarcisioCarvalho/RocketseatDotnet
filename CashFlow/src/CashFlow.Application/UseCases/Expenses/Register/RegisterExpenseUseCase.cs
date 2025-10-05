@@ -1,17 +1,24 @@
 ﻿using CashFlow.Communication.Requests;
 using CashFlow.Communication.Responses;
 using CashFlow.Domain.Entities;
+using CashFlow.Domain.Repositories.Expenses;
 using CashFlow.Exception.ExceptionBase;
-using CashFlow.Infrastructure.DataAccess;
+
 
 namespace CashFlow.Application.UseCases.Expenses.Register;
-public class RegisterExpenseUseCase
+public class RegisterExpenseUseCase : IRegisterExpenseUseCase
 {
+    private readonly IExpensesRepository _repository;
+
+    public RegisterExpenseUseCase(IExpensesRepository repository)
+    {
+        _repository = repository;
+    }
     public ResponseRegisterExpenseJson Execute(RequestRegisterExpenseJson request)
     {
         Validate(request);
         // Implementation of the use case to register an expense
-        var dbContext = new CashFlowDbContext();
+        
         var expense = new Expense
         {
             Title = request.Title,
@@ -20,8 +27,8 @@ public class RegisterExpenseUseCase
             Value = request.Value,
             PaymentType = (Domain.Enums.PaymentType)request.PaymentType
         };
-        dbContext.Expenses.Add(expense);
-        dbContext.SaveChanges();
+        _repository.Add(expense);
+
         return new ResponseRegisterExpenseJson
         {
             Title = request.Title,
