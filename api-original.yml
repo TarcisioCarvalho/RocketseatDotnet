@@ -356,8 +356,75 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
+  '/{version}/Atendimento/{CodigoEmpresaWeb}/{Cdc}/{DigitoVerificador}/{TipoInteracao}/{CodigoAcao}':
+    get:
+      summary: Gera protocolo de atendimento ao cliente
+      deprecated: false
+      description: Gera protocolo de atendimento ao cliente.
+      tags:
+        - Atendimento
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: CodigoEmpresaWeb
+          in: path
+          required: true
+          description: Empresa que consta o numero de cdc.
+          schema:
+            type: integer
+            format: int32
+        - name: Cdc
+          in: path
+          required: true
+          description: Parte principal da identificação da UC.
+          schema:
+            type: integer
+            format: int64
+        - name: DigitoVerificador
+          in: path
+          required: true
+          description: Dígito verificador da UC.
+          schema:
+            type: integer
+            format: int32
+        - name: TipoInteracao
+          in: path
+          required: true
+          description: Tipo da interação a ser solicitada.
+          schema:
+            type: integer
+            format: int32
+        - name: CodigoAcao
+          in: path
+          required: true
+          description: Ação informada para abertura do protocolo.
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK: Interação registrada com sucesso."
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/RetornoProtocoloResultadoObjeto'
+        "400":
+          description: "Requisição inválida."
+        "401":
+          description: Acesso não autorizado.
+        "403":
+          description: Usuário não autenticado.
+        "405":
+          description: WebService desabilitado
+        "412":
+          description: "ERRO: Não foi possível gerar a interação."
+        "500":
+          description: "Ocorreu um erro inesperado."
 components:
-  schemas: 
+  schemas:
     CompanyId:
       type: string
       description: Energisa Company Identifier
@@ -389,6 +456,13 @@ components:
               type: boolean
               description: Indicates if the request can be retried
               example: false
+    RetornoProtocoloResultadoObjeto:
+      type: object
+      properties:
+        categoria:
+          type: string
+          nullable: true
+          readOnly: true
   responses:
     BadRequest:
       description: Bad Request. The request could not be understood or was missing required parameters.
@@ -478,7 +552,6 @@ components:
                   detail: O UUID fornecido não está no formato válido. Esperado - formato UUID v4
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     Unauthorized:
       description: Unauthorized - authentication is required or has failed
       content:
@@ -556,7 +629,6 @@ components:
                   detail: O cliente com a UC fornecida não foi encontrado no sistema
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     NotFound:
       description: Resource not found
       content:
@@ -609,7 +681,6 @@ components:
                   detail: Não existe uma sessão associada ao UUID fornecido
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     Conflict:
       description: Conflict with current state of the resource
       content:
@@ -644,7 +715,6 @@ components:
                   detail: O status desta recarga já foi registrado anteriormente como concluída
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     Gone:
       description: Gone - resource existed but is no longer available (expired)
       content:
@@ -661,7 +731,6 @@ components:
                   detail: A sessão associada a este UUID expirou. O tempo de validade é de 5 minutos
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     GatewayTimeout:
       description: Gateway Timeout - upstream service did not respond in time
       content:
@@ -705,7 +774,6 @@ components:
                   detail: Não foi possível notificar o cliente sobre o resultado da recarga dentro do tempo limite
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: true
-    
     InternalServerError:
       description: Internal Server Error. An unexpected error occurred on the server.
       content:
