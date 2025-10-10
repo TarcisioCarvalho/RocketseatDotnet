@@ -264,11 +264,30 @@ paths:
                         type: string
                         example: "123456"
                       name:
+                        description: Used to display on the page
                         type: string
                         example: João da Silva
                       address:
+                        description: Used to display on the page
                         type: string
                         example: Rua Exemplo, 123
+                      checkDigit:
+                        description: Used to open a protocol
+                        type: number
+                        example: 5
+                      cdc:
+                       type: number
+                       example: 1223344
+                      webCompanyCode:
+                        description: Used to open a protocol
+                        type: number
+                        example: 1
+                      originChannel :
+                        $ref: '#/components/schemas/OriginChannelType'
+                        description: Used to open a protocol
+                        example: AD
+                          
+                      
           headers: {}
         "400":
           $ref: '#/components/responses/BadRequest'
@@ -460,6 +479,10 @@ components:
       type: string
       description: Energisa Company Identifier
       enum: [EMR, ESE, EPB, ETO, EMT, EMS, ESS, EAC, ERO]
+    OriginChannelType:
+        type : string
+        description: Channel from which the page was accessed.
+        enum: [AD,EON,SIATT]
     ErrorResponse:
       type: object
       properties:
@@ -836,6 +859,9 @@ components:
                   detail: Ocorreu um erro inesperado ao processar a requisição
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: true
+
+    
+
   securitySchemes: {}
 servers:
   - url: http://dev-cn.your-api-server.com
