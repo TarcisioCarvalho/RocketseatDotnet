@@ -423,8 +423,39 @@ paths:
           description: "ERRO: Não foi possível gerar a interação."
         "500":
           description: "Ocorreu um erro inesperado."
+  '/{version}/UsuarioEmpresaParceira':
+    post:
+      summary: Realiza a autenticação de clientes externos da API
+      deprecated: false
+      tags:
+        - Atendimento
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Objeto contendo credenciais (token de acesso e senha de acesso)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Requisição inválida.
+        "412":
+          description: Erro de validação de parâmetros de entrada.
+        "500":
+          description: Ocorreu um erro inesperado.
 components:
-  schemas:
+  schemas: 
     CompanyId:
       type: string
       description: Energisa Company Identifier
@@ -463,6 +494,15 @@ components:
           type: string
           nullable: true
           readOnly: true
+    CredenciaisUsuarioEmpresaParceiraApi:
+      type: object
+      properties:
+        tokenAcessoApi:
+          type: string
+          nullable: true
+        senhaAcessoApi:
+          type: string
+          nullable: true
   responses:
     BadRequest:
       description: Bad Request. The request could not be understood or was missing required parameters.
@@ -552,6 +592,7 @@ components:
                   detail: O UUID fornecido não está no formato válido. Esperado - formato UUID v4
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
+    
     Unauthorized:
       description: Unauthorized - authentication is required or has failed
       content:
@@ -629,6 +670,7 @@ components:
                   detail: O cliente com a UC fornecida não foi encontrado no sistema
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
+    
     NotFound:
       description: Resource not found
       content:
@@ -681,6 +723,7 @@ components:
                   detail: Não existe uma sessão associada ao UUID fornecido
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
+    
     Conflict:
       description: Conflict with current state of the resource
       content:
@@ -715,6 +758,7 @@ components:
                   detail: O status desta recarga já foi registrado anteriormente como concluída
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
+    
     Gone:
       description: Gone - resource existed but is no longer available (expired)
       content:
@@ -731,6 +775,7 @@ components:
                   detail: A sessão associada a este UUID expirou. O tempo de validade é de 5 minutos
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
+    
     GatewayTimeout:
       description: Gateway Timeout - upstream service did not respond in time
       content:
@@ -774,6 +819,7 @@ components:
                   detail: Não foi possível notificar o cliente sobre o resultado da recarga dentro do tempo limite
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: true
+    
     InternalServerError:
       description: Internal Server Error. An unexpected error occurred on the server.
       content:
