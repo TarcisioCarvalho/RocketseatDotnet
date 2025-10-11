@@ -1,10 +1,10 @@
-﻿using CashFlow.Domain.Repositories.Expenses;
+﻿using CashFlow.Domain.Repositories;
+using CashFlow.Domain.Repositories.Expenses;
 using CashFlow.Infrastructure.DataAccess;
 using CashFlow.Infrastructure.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace CashFlow.Infrastructure;
 public static class DependecyInjectionExtension
@@ -17,6 +17,7 @@ public static class DependecyInjectionExtension
     private static void AddRepositories(IServiceCollection services)
     {
         services.AddScoped<IExpensesRepository, ExpensesRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
     private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
     {

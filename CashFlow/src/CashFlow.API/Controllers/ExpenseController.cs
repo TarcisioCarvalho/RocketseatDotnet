@@ -10,10 +10,10 @@ namespace CashFlow.API.Controllers;
 public class ExpenseController : ControllerBase
 {
     [HttpPost]
-    public IActionResult Register([FromServices] IRegisterExpenseUseCase useCase,
+    public async Task<IActionResult> Register([FromServices] IRegisterExpenseUseCase useCase,
         [FromBody] RequestRegisterExpenseJson request)
     {
-        var response = useCase.Execute(request);
+        var response = await useCase.Execute(request);
         return Created(string.Empty, response);
     }
 }

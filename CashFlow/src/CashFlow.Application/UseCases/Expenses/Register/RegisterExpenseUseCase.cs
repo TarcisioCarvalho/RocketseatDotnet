@@ -16,11 +16,11 @@ public class RegisterExpenseUseCase : IRegisterExpenseUseCase
         _repository = repository;
         _unitOfWork = unitOfWork;
     }
-    public ResponseRegisterExpenseJson Execute(RequestRegisterExpenseJson request)
+    public async Task<ResponseRegisterExpenseJson> Execute(RequestRegisterExpenseJson request)
     {
         Validate(request);
         // Implementation of the use case to register an expense
-        
+
         var expense = new Expense
         {
             Title = request.Title,
@@ -29,8 +29,8 @@ public class RegisterExpenseUseCase : IRegisterExpenseUseCase
             Value = request.Value,
             PaymentType = (Domain.Enums.PaymentType)request.PaymentType
         };
-        _repository.Add(expense);
-        _unitOfWork.Commit();
+        await _repository.Add(expense);
+        await _unitOfWork.Commit();
 
         return new ResponseRegisterExpenseJson
         {
@@ -44,7 +44,7 @@ public class RegisterExpenseUseCase : IRegisterExpenseUseCase
         var validationResult = validator.Validate(request);
         if (!validationResult.IsValid)
         {
-            var errors =  validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
             throw new ErrorOnValidationException(errors);
         }
     }
