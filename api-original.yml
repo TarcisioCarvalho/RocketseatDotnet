@@ -103,7 +103,38 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       security:
         - BasicAuth: []
-  /api/v1/pre-payment/qrcode:
+  '/{version}/UsuarioEmpresaParceira':
+    post:
+      summary: Realiza a autenticação de clientes externos da API
+      deprecated: false
+      tags:
+        - Autenticação
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Objeto contendo credenciais (token de acesso e senha de acesso)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Requisição inválida.
+        "412":
+          description: Erro de validação de parâmetros de entrada.
+        "500":
+          description: Ocorreu um erro inesperado.
+  /cliente/v1/pre-payment/qrcode:
     post:
       summary: Request Pix QrCode for recharge payment
       deprecated: false
@@ -224,7 +255,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
-  /api/v1/pre-payment/notification/low-balance:
+  /cliente/v1/pre-payment/notification/low-balance:
     post:
       summary: Notify the alerts related to Pre-Payment Customer Balance
       deprecated: false
@@ -266,7 +297,6 @@ paths:
                     - level2
                     - level3
                     - exhausted
-                  deprecated: true
                   example: level1
                 tresholdValue:
                   type: number
@@ -308,7 +338,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
-  /api/v1/pre-payment/session/{uuid}:
+  /cliente/v1/pre-payment/session/{uuid}:
     get:
       summary: Validade unique session key and return linked customer data
       deprecated: false
@@ -359,8 +389,13 @@ paths:
                         type: number
                         example: 5
                       cdc:
-                        type: number
+                        description: Used to open a protocol
+                        type: string
                         example: 1223344
+                      cdcAneel:
+                        description: Used to display on the page
+                        type: string
+                        example: 36.247.050-54
                       webCompanyCode:
                         description: Used to open a protocol
                         type: number
@@ -369,6 +404,14 @@ paths:
                         $ref: '#/components/schemas/OriginChannelType'
                         description: Used to open a protocol
                         example: AD
+                      InteractionType:
+                        description: Used to open a protocol
+                        type: number
+                        example: 120
+                      ActionCode:
+                        description: Used to open a protocol
+                        type: number
+                        example: 150
               headers: {}
         "400":
           $ref: '#/components/responses/BadRequest'
@@ -376,12 +419,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
-        "410":
-          $ref: '#/components/responses/Gone'
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
-  /api/v1/pre-payment/notification/recharge-status:
+  /cliente/v1/pre-payment/notification/recharge-status:
     post:
       summary: Notify the result of the recharge issuance to the meter
       deprecated: false
@@ -523,37 +564,6 @@ paths:
           description: "ERRO: Não foi possível gerar a interação."
         "500":
           description: "Ocorreu um erro inesperado."
-  '/{version}/UsuarioEmpresaParceira':
-    post:
-      summary: Realiza a autenticação de clientes externos da API
-      deprecated: false
-      tags:
-        - Atendimento
-      parameters:
-        - name: version
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: Objeto contendo credenciais (token de acesso e senha de acesso)
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Requisição inválida.
-        "412":
-          description: Erro de validação de parâmetros de entrada.
-        "500":
-          description: Ocorreu um erro inesperado.
 components:
   schemas:
     CompanyId:
