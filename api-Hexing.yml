@@ -1,0 +1,1359 @@
+openapi: 3.0.1
+info:
+  title: API HEXING
+  description: |-
+    **Authentication overview**
+
+    - **Billing endpoints**: require only the OAuth access token. Send it in the header as `Authorization: Bearer <access_token>`.
+    - **Partner Company authentication endpoint** (`/autenticacao/{version}/UsuarioEmpresaParceira`): requires the OAuth access token **and** the client's credentials (`clientId` and `password`) to obtain the **Partner Company Token**.
+    - **All other endpoints**: require **both** tokens — the OAuth access token **and** the Partner Company Token — to be provided with each request.
+
+  version: 1.0.0
+tags:
+  - name: Faturamento
+  - name: Canais Digitais
+  - name: Canais Convencionais
+paths:
+  /recharge/payment/confirmation:
+    post:
+      summary: Performs the confirmation of the recharge payment.
+      deprecated: false
+      description: |-
+        ### Clarify
+        > 1、Our msgid format may be a string consisting of multiple numbers, for example, 386603680784510976. Could you please confirm if this is acceptable? Because I noticed that you have modified the format of msgid.
+        > 2、Regarding the optional range of the extras.identifier attribute, I believe it needs to be expanded. This is because for the vending system, there may be other configured amounts such as stamp duty, Timber, and other government taxes. Therefore, it is recommended that custom naming be allowed for this, while we will retain the 3 currently provided ones (cashback, rounding, first-recharge).
+        > 3、About the extras.identifier "first-recharge", in what cases will it have a value?
+        > 4、The onlineRecharge will be removed. Instead, we will use a callback function method. When the vending system issues the recharge-token, it will wait for the meter to return the recharge result. After the vending system receives the result, it will send the recharge result (success or failure) to the callback interface provided by Energisa.
+        ### Answear
+        
+        1. The format is a string, and yes, it is acceptable. We will accept a maximum of 50 characters.
+        
+        2. Regarding the "**rounding**" identifier, we'd like to clarify **that it should be the rounded value, not the variation**. We've included the "description" object in extras to provide the full description of the identifier.
+        
+        3. The **extras.identifier** "first recharge" object provides the discounted value from the meter's initial charge.
+        4. OK.
+      tags:
+        - Faturamento
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meterNumber:
+                  type: string
+                  description: Customer meter number.
+                  example: '123456789'
+                msgId:
+                  type: string
+                  description: identifier of the recharge sent by ORCA when requesting the generation of the QRCode.
+                  example: 386603680784510976
+            examples: {}
+      responses:
+        '200':
+          description: Recharge completed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: '00'
+                  msg:
+                    type: string
+                    example: success
+                  msgId:
+                    type: string
+                    example: '202508201721000003'
+                  data:
+                    type: object
+                    properties:
+                      receiptNo:
+                        type: string
+                        example: '000000000014509'
+                      uc:
+                        type: string
+                        example: 123XY
+                      meterNumber:
+                        type: string
+                        example: '14000000019'
+                      date:
+                        type: string
+                        example: '2025-08-11T14:00:00Z'
+                      tenderAmt:
+                        type: number
+                        description: payment amount
+                        example: 100
+                      creditTx:
+                        type: object
+                        properties:
+                          amt:
+                            type: number
+                            description: credtTx.units x tariff
+                            example: 500
+                          units:
+                            type: number
+                            description: Integer part of the value in kWh  
+                              (creditTx.units = Original Credit Amt / tariff)
+                            example: 15
+                          tokens:
+                            type: string
+                            example: 65413373178112339376,73543480717529714278,13708351482135531130
+                      debtTx:
+                        type: object
+                        properties:
+                          amt:
+                            type: number
+                            description: Amount intended for paying off debts.
+                            example: 500
+                          balance:
+                            type: number
+                            description: Amount remaining to pay off debts.
+                            example: 17.5
+                      extras:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            identifier:
+                              type: string
+                              description: Rounding
+                            amt:
+                              type: number
+                              description: Rounding value, not variation.
+                            units:
+                              type: number
+                              description: Rounded value in KWh, not the variation.
+                            description:
+                              type: string
+                              description: Full description of the identifier.
+                              
+                              
+                        example:
+                          - identifier: rounding
+                            amt: 2
+                            units: 10
+                            description: Full description of the identifier
+          headers: {}
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+          
+        "404":
+          $ref: '#/components/responses/NotFound'
+          
+
+        '409':
+          description: Conflict – duplicate or invalid state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: CONFLICT
+                      message:
+                        type: string
+                        example: Recharge already processed
+                      detail:
+                        type: string
+                        example: The recharge for this msgId has already been confirmed
+                      timestamp:
+                        type: string
+                        example: '2025-10-06T14:30:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          
+          headers: {}
+      security: []
+  /recharge/company/{companyId}/pageSize/{pageSize}/pageIndex/{pageIndex}:
+    get:
+      summary: Returns all daily recharges.
+      deprecated: false
+      description: |-
+        ### Clarify
+        > 1、I noticed that you've re-added the HTTP error codes(400, 401, 404) for all interfaces. Is this necessary?
+        > 2、The 'extras' object has been removed from the return result, which will cause a mismatch in the book amount of the purchase order. Is this correct?
+        > Example: 
+        Unit Price = 0.78 BRL
+        Payment Amount = 100 BRL
+        Debt = 10 BRL
+        Credit Amount = 89.7 BRL
+        Credit Units = 115 kwh
+        ~~Rounding = -0.3 BRL~~
+        100 (not equal to) 10+89.7 ~~-(-0.3)~~
+        
+        ### Answear
+ 
+        1. There is no need, it was just our suggestion. You can change our proposal as you see fit. 
+        
+        2. We return the "extras" object.
+      tags:
+        - Faturamento
+      parameters:
+        - name: companyId
+          in: path
+          description: ''
+          required: true
+          example: 0
+          schema:
+            type: number
+            example: 5
+        - name: pageIndex
+          in: path
+          description: ''
+          required: true
+          example: 0
+          schema:
+            type: number
+            example: 1
+        - name: pageSize
+          in: path
+          description: ''
+          required: true
+          example: 0
+          schema:
+            type: number
+            example: 100
+        - name: rechargeDate
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+            example: DD-MM-YYYY
+      responses:
+        '200':
+          description: Filtered list of recharges
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: '00'
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      pageIndex:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 10
+                      totalCount:
+                        type: integer
+                        example: 87
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            msgId:
+                              type: string
+                              description: Identifier of the recharge sent by ORCA when requesting the generation of the QRCode.
+                              example: '20250805161515'
+                            receiptNo:
+                              type: string
+                              example: '000000000014509'
+                            uc:
+                              type: string
+                              example: 123XY
+                            meterNumber:
+                              type: string
+                              example: '14000000019'
+                            date:
+                              type: string
+                              format: date-time
+                              example: '2025-08-11T14:00:00Z'
+                            tenderAmt:
+                              type: number
+                              description: payment amount
+                            creditTx:
+                              type: object
+                              properties:
+                                amt:
+                                  type: number
+                                  description: credtTx.units x tariff
+                                  example: 500
+                                units:
+                                  type: number
+                                  description: Integer part of the value in kWh (credtTx.units = Original Credit Amt/tariff).
+                                  example: 17
+                                tokens:
+                                  type: string
+                                  example: 65413373178112339376,73543480717529714278,13708351482135531130
+                            debtTx:
+                              type: object
+                              properties:
+                                amt:
+                                  type: number
+                                  description: Amount intended for paying off debts.
+                                  example: 5
+                                balance:
+                                  type: number
+                                  description: Amount remaining to pay off debts.
+                                  example: 215
+                            extras:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  identifier:
+                                    type: string
+                                    description: Rounding
+                                  amt:
+                                    type: number
+                                    description: Rounding value, not variation.
+                                  units:
+                                    type: number
+                                    description: Rounded value in KWh, not the variation.
+                                  description:
+                                    type: string
+                                    description: Full description of the identifier.
+                                    
+                              example:
+                                - identifier: rounding
+                                  amt: 2
+                                  units: 10
+                                  description: Full description of the identifier
+          headers: {}
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          description: Company or data not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: NOT_FOUND
+                      message:
+                        type: string
+                        example: Company or recharges not found
+                      detail:
+                        type: string
+                        example: No company or recharge data found for the provided parameters
+                      timestamp:
+                        type: string
+                        example: '2025-10-08T08:00:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          headers: {}
+      security: []
+  /balance/meter/{meterNumber}:
+    get:
+      summary: Check the balance
+      deprecated: false
+      description: Returns the customer's balance.
+      tags:
+        - Canais Digitais
+      parameters:
+        - name: meterNumber
+          in: path
+          description: ''
+          required: true
+          example: ''
+          schema:
+            type: string
+            example: 14000000019
+        - name: noCache
+          in: query
+          description: 'true: real-time; false: from cache.'
+          required: false
+          schema:
+            type: boolean
+            default: false
+            example: true
+      responses:
+        '200':
+          description: List of balances
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: '00'
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      balance:
+                        type: number
+                        example: -5.7
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-08-05T14:00:00Z'
+          headers: {}
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+          
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+          headers: {}
+      security: []
+  /recharge/meter/{meterNumber}/pageSize/{pageSize}/pageIndex/{pageIndex}:
+    get:
+      summary: Retrieve the recharge history of a meter.
+      deprecated: false
+      description: |-
+        Retrieves all recharges made within a specified time period.
+
+        ### Clarify
+        > 1、I’ve noticed that you’ve changed the date format in the interface "Retorna todas as recargas diárias". Therefore, do we need to adjust the formats of the parameters dataInicio and dataFim to DD-MM-YYYY?
+        > 2、I've noticed that an additional "units" has been added to the returned object "extras", but the interface "Realiza a confirmação de pagamento da recarga" does not include it. Is this correct?
+         
+          ### Answear
+        
+        1. Yes, we can proceed with the DD-MM-YYYY format.
+        
+        2.  Indeed, we will need the extras field in this endpoint, because it is required in the recharge history. It is very important for us to have all the information related to that recharge.
+        
+      
+          
+      
+       
+      tags:
+        - Canais Digitais
+      parameters:
+        - name: meterNumber
+          in: path
+          description: ''
+          required: true
+          example: 0
+          schema:
+            type: integer
+            example: 14000000019
+        - name: pageSize
+          in: path
+          description: ''
+          required: true
+          example: ''
+          schema:
+            type: string
+            example: '1234'
+        - name: pageIndex
+          in: path
+          description: ''
+          required: true
+          example: ''
+          schema:
+            type: string
+            example: '1'
+        - name: startDate
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+            example: '20250805'
+        - name: endDate
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+            example: '20250805'
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: '00'
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      pageIndex:
+                        type: number
+                        example: 1
+                      pageSize:
+                        type: number
+                        example: 10
+                      totalCount:
+                        type: number
+                        example: 87
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            msgId:
+                              type: string
+                              example: '20250805161515'
+                            receiptNo:
+                              type: string
+                              example: '000000000014509'
+                            uc:
+                              type: string
+                              example: 123XY
+                            meterNumber:
+                              type: string
+                              example: '14000000019'
+                            date:
+                              type: string
+                              format: date-time
+                              example: '2025-08-05T14:00:00Z'
+                            tenderAmt:
+                              type: number
+                              description: payment amount
+                            creditTx:
+                              type: object
+                              properties:
+                                amt:
+                                  type: number
+                                  description: electricity amount
+                                  example: 500
+                                units:
+                                  type: number
+                                  description: kwh
+                                  example: 17
+                                tokens:
+                                  type: string
+                                  example: 65413373178112339376,73543480717529714278,13708351482135531130
+                            debtTx:
+                              type: object
+                              properties:
+                                amt:
+                                  type: number
+                                  example: 5
+                                balance:
+                                  type: number
+                                  example: 215
+                            extras:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  identifier:
+                                    type: string
+                                    enum:
+                                      - cashback
+                                      - exceedValue
+                                      - first-recharge
+                                    description: Type of extra, such as included cashback, rounding, or first recharge fee.
+                                  amt:
+                                    type: number
+                                    description: Value can be positive or negative.
+                                  units:
+                                    type: number
+                                    description: kWh associated with the extra, if applicable.
+                              example:
+                                - identifier: cashback
+                                  amt: 50
+                                - identifier: exceed-value
+                                  amt: 0
+                                - identifier: first-recharge
+                                  amt: 0
+          headers: {}
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+          
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          
+          headers: {}
+      security: []
+  /meter/achive/:
+    post:
+      summary: Registers a new meter.
+      deprecated: false
+      description: ''
+      tags:
+        - Canais Convencionais
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: result code
+                  example: '00'
+                msg:
+                  type: string
+                  description: result message
+                  example: success
+                data:
+                  type: object
+                  properties:
+                    meterNumber:
+                      type: string
+                      example: '14000000019'
+                    meterModel:
+                      type: string
+                      enum:
+                        - HXE110
+                        - HXE330
+                    uc:
+                      type: string
+                      example: '123456789'
+                    mode:
+                      type: string
+                      enum:
+                        - PRE_PAGO
+                        - POS_PAGO
+                      example: PRE_PAGO
+                    company:
+                      type: string
+                      example: '201001'
+                    tariffSchema:
+                      type: string
+                      description: tariff name
+                      example: resident
+                  required:
+                    - meterNumber
+                    - meterModel
+                    - uc
+                    - mode
+                    - company
+                    - tariffSchema
+              required:
+                - data
+                - code
+      responses:
+        '200':
+          description: Meter registered successfully!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: result code
+                    example: '00'
+                  msg:
+                    type: string
+                    description: result message
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      meterNumber:
+                        type: string
+                        example: '14000000019'
+                      uc:
+                        type: string
+                        example: '123456789'
+                    required:
+                      - meterNumber
+                      - uc
+                required:
+                  - code
+          headers: {}
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+        '422':
+          description: Unprocessable Entity – business or payload errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: INVALID_ENUM
+                      message:
+                        type: string
+                        example: Invalid value for field
+                      detail:
+                        type: string
+                        example: The field 'mode' must be one of [PRE_PAGO, POS_PAGO]
+                      timestamp:
+                        type: string
+                        example: '2025-10-08T10:04:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+
+        '423':
+          description: Locked – duplicate combination or business rule violation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: DUPLICATE_ENTRY
+                      message:
+                        type: string
+                        example: Duplicate meter registration
+                      detail:
+                        type: string
+                        example: A meter with the same 'uc' and 'company' already exists
+                      timestamp:
+                        type: string
+                        example: '2025-10-08T10:05:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+          headers: {}
+      security: []
+  /meter/meter/{meterNumber}:
+    patch:
+      summary: Changes the meter's operating mode.
+      deprecated: false
+      description: |-
+        It would be used both for customer enrollment and termination, changing it to postpaid/prepaid.
+        1、this interface only applicable to online meters.
+      tags:
+        - Canais Convencionais
+      parameters:
+        - name: meterNumber
+          in: path
+          description: meter number
+          required: true
+          example: '14000000019'
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  enum:
+                    - PRE_PAGO
+                    - POS_PAGO
+                  description: the meter mode to be switched to.
+                  example: PRE_PAGO
+              required:
+                - mode
+      responses:
+        '200':
+          description: Mode changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: result code
+                    example: '00'
+                  msg:
+                    type: string
+                    description: result message
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      meterNumber:
+                        type: string
+                        description: meter number
+                        example: '14000000019'
+                      meterReading:
+                        type: number
+                        description: Current Reading, the field “meterReading” refers to the period from installation until the moment the meter was set to prepaid mode. it's in kwh
+                        example: 120
+                      balanceAMT:
+                        type: number
+                        description: Current Balance in kwh.
+                        example: 50
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-08-05T14:00:00Z'
+                      mode:
+                        type: string
+                        enum:
+                          - PRE_PAGO
+                          - POS_PAGO
+                        description: This field represents the mode of the meter after switching modes.
+                        example: PRE_PAGO
+                required:
+                  - data
+                  - code
+          headers: {}
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+          
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+        '422':
+          description: Unprocessable Entity – business or payload errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: BUSINESS_RULE_VIOLATION
+                      message:
+                        type: string
+                        example: Business rule violation
+                      detail:
+                        type: string
+                        example: The meter must be online to switch mode
+                      timestamp:
+                        type: string
+                        example: '2025-10-08T11:04:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+          headers: {}
+      security: []
+  /meter/settle/meter/{meterNumber}/balance/{balance}:
+    get:
+      summary: Get Settle Fees
+      deprecated: false
+      description: |-
+        When a client decides to leave the prepaid sandbox, they need to receive the value stored in their account balance and their residual credit via API interface. 
+        We can provide a balance retrieval interface that returns both the current real-time balance of the meter and the monetary amount corresponding to the balance (calculated based on the meter's prepaid rate). However, in the log-off process, please note that users have not only balances but also debts. Therefore, would it be a better option to return the information in four parts: 
+        1. User account balance (in BRL); If it is negative, it represents the amount that Energisa needs to refund to the user.
+        2. Monetary amount corresponding to the kwh balance (in BRL); 
+        3. Outstanding debt (in BRL); 
+        4. Other fee (in BRL), like UC balance from Energisa.
+
+        >**Obs:
+        Also, please note that after you retrieve the balance, the meter is very likely still in operation, which means there may be a discrepancy between the final balance and the balance you retrieved. Therefore, you may consider promptly removing the meter or issuing a Relay tripping command or issuing a clear balance command. However, it should be noted that if you need to restore power (for new users), you will need to issue a Relay closing command or recharge a sum of money. This is related to your leave sandbox process, as it also involves how the next user will use this meter.**
+      tags:
+        - Canais Convencionais
+      parameters:
+        - name: meterNumber
+          in: path
+          description: meter number
+          required: true
+          example: '14000000019'
+          schema:
+            type: string
+        - name: balance
+          in: path
+          description: Current balance of the meter, in kwh
+          required: true
+          example: 0
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: result code
+                    example: '00'
+                  msg:
+                    type: string
+                    description: result message
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      meterNumber:
+                        type: string
+                        description: meter number
+                        example: '14000000019'
+                      balanceAMT:
+                        type: number
+                        description: the corresponding amount of the input parameter balance . Calculate based on the current rate calculated by the meter. it's in BRL
+                        example: 8.26
+                      accountBalance:
+                        type: number
+                        description: customer account balance in BRL
+                        example: -1.6
+                      debt:
+                        type: number
+                        description: debt balance in BRL
+                        example: 14.8
+                      fees:
+                        type: number
+                        description: other fees in BRL
+                required:
+                  - data
+                  - code
+          headers: {}
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+          
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+          headers: {}
+      security: []
+  /meter/settle:
+    post:
+      summary: Settle
+      deprecated: false
+      description: |-
+        When a client decides to leave the prepaid sandbox, they need to receive the value stored in their account balance and their residual credit via API interface. 
+
+        This interface does some things:
+        1. Settle the fees so that there are no charges on this meter, and the next user will not need to pay these fees when using this meter.
+        2. If the balance is negative, it means the user owes money.
+      tags:
+        - Canais Convencionais
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meterNumber:
+                  type: string
+                  description: meter number
+                  example: '14000000019'
+                balance:
+                  type: number
+                  description: Current balance of the meter (in kWh)
+                  example: 16.3
+              required:
+                - meterNumber
+                - balance
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: result code
+                    example: '00'
+                  msg:
+                    type: string
+                    description: result message
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      meterNumber:
+                        type: string
+                        description: meter number
+                        example: '14000000019'
+                      balanceAMT:
+                        type: number
+                        description: the corresponding amount of the input parameter balance . Calculate based on the current rate calculated by the meter. it's in BRL.
+                        example: 8.26
+                      accountBalance:
+                        type: number
+                        description: customer account balance. it's in BRL.
+                        example: -1.6
+                      debt:
+                        type: number
+                        description: debt balance. it's in BRL.
+                        example: 14.8
+                      fees:
+                        type: number
+                        description: other fees. it's in BRL.
+                required:
+                  - data
+                  - code
+          headers: {}
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+          
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+        "503":
+          $ref: '#/components/responses/ServiceUnavailable'
+          
+        "504":
+          $ref: '#/components/responses/GatewayTimeout'
+          
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+          headers: {}
+      security: []
+components:
+  schemas: 
+    CompanyId:
+      type: string
+      description: Energisa Company Identifier
+      enum: [EMR, ESE, EPB, ETO, EMT, EMS, ESS, EAC, ERO]
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code identifier
+              example: METER_NOT_REGISTERED
+            message:
+              type: string
+              description: Human-readable error message
+              example: Medidor não está registrado na base da Energisa
+            detail:
+              type: string
+              description: Detailed error description
+              example: O medidor 123456 não foi encontrado na base de dados da empresa EMR
+            timestamp:
+              type: string
+              format: date-time
+              description: Error timestamp in ISO 8601 format
+              example: "2025-10-06T14:30:00Z"
+            retryable:
+              type: boolean
+              description: Indicates if the request can be retried
+              example: false
+  responses:
+    BadRequest:
+      description: Bad Request. The request could not be understood or was missing required parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            InvalidParameter:
+              summary: Missing or invalid parameter
+              value:
+                error:
+                  code: INVALID_PARAMETER
+                  message: Bad Request – invalid input data
+                  detail: The field 'meterNumber' is required
+                  timestamp: "2025-10-06T14:30:00Z"
+                  retryable: false
+    Unauthorized:
+        description: Unauthorized – authentication failed
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: UNAUTHORIZED
+                      message:
+                        type: string
+                        example: Authentication failed
+                      detail:
+                        type: string
+                        example: Provide a valid token in the Authorization header
+                      timestamp:
+                        type: string
+                        example: '2025-10-06T14:30:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+
+    Forbidden:
+        description: Forbidden – user authenticated but not authorized
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: FORBIDDEN
+                      message:
+                        type: string
+                        example: User not authorized
+                      detail:
+                        type: string
+                        example: The authenticated user does not have permission to perform this action
+                      timestamp:
+                        type: string
+                        example: '2025-10-06T14:30:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+
+    NotFound:
+        description: NotFound - Meter not found
+        content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: NOT_FOUND
+                      message:
+                        type: string
+                        example: Meter not found
+                      detail:
+                        type: string
+                        example: No meter registered with the provided number
+                      timestamp:
+                        type: string
+                        example: '2025-10-06T14:30:00Z'
+                      retryable:
+                        type: boolean
+                        example: false
+    Conflict:
+      description: Conflict with current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            DuplicateStatusNotification:
+              summary: Duplicate status notification (recharge-status endpoint)
+              value:
+                error:
+                  code: DUPLICATE_STATUS_NOTIFICATION
+                  message: Notificação de status já recebida
+                  detail: Uma notificação de status já foi recebida para esta recarga
+                  timestamp: "2025-10-06T14:30:00Z"
+                  retryable: false
+            RechargeAlreadyCompleted:
+              summary: Recharge already completed (recharge-status endpoint)
+              value:
+                error:
+                  code: RECHARGE_ALREADY_COMPLETED
+                  message: Recarga já foi completada
+                  detail: O status desta recarga já foi registrado anteriormente como concluída
+                  timestamp: "2025-10-06T14:30:00Z"
+                  retryable: false
+    
+    Gone:
+      description: Gone - resource existed but is no longer available (expired)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            UuidExpired:
+              summary: UUID expired (session endpoint)
+              value:
+                error:
+                  code: UUID_EXPIRED
+                  message: UUID expirado
+                  detail: A sessão associada a este UUID expirou. O tempo de validade é de 5 minutos
+                  timestamp: "2025-10-06T14:30:00Z"
+                  retryable: false
+    
+    GatewayTimeout:
+      description: Gateway Timeout - upstream service did not respond in time
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            NotificationProcessingTimeout:
+              summary: Timeout contacting external service
+              value:
+                error:
+                  code: SERVICE_TIMEOUT
+                  message: Timeout contacting external service
+                  timestamp: "2025-10-06T14:30:00Z"
+                  retryable: true
+    
+    InternalServerError:
+      description: Internal Server Error. An unexpected error occurred on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            InternalError:
+              summary: Generic internal server error
+              value:
+                error:
+                  code: INTERNAL_ERROR
+                  message: Internal server error
+                  timestamp: "2025-10-06T14:30:00Z"
+                  retryable: true
+    
+    ServiceUnavailable:
+          description: Service Unavailable – external service down
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: SERVICE_UNAVAILABLE
+                      message:
+                        type: string
+                        example: External service unavailable
+                      detail:
+                        type: string
+                        example: The meter service is temporarily down
+                      timestamp:
+                        type: string
+                        example: '2025-10-06T14:30:00Z'
+                      retryable:
+                        type: boolean
+                        example: true
+  securitySchemes: {}
+servers:
+  - url: http://dev-cn.your-api-server.com
+    description: Develop Env
+security: []
