@@ -4,9 +4,105 @@ info:
   description: ""
   version: 1.0.0
 tags:
+  - name: Autenticação
   - name: Faturamento
   - name: Atendimento
 paths:
+  /oauth/access-token:
+    post:
+      summary: Obter token de acesso OAuth
+      deprecated: false
+      description: |-
+        Endpoint para autenticação e obtenção do access token utilizando o fluxo Client Credentials do OAuth 2.0.
+
+        O token deve ser enviado no header Authorization das demais requisições como: `Bearer {access_token}`
+      tags:
+        - Autenticação
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - grant_type
+              properties:
+                grant_type:
+                  type: string
+                  description: Tipo de concessão OAuth. Deve ser 'client_credentials'
+                  enum:
+                    - client_credentials
+                  example: client_credentials
+      responses:
+        "200":
+          description: Token gerado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: Token de acesso a ser utilizado nas requisições
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  token_type:
+                    type: string
+                    description: Tipo do token
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                    description: Tempo de expiração do token em segundos
+                    example: 3600
+                  scope:
+                    type: string
+                    description: Escopos concedidos ao token
+                    example: read write
+        "400":
+          description: Requisição inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidGrantType:
+                  summary: Grant type inválido
+                  value:
+                    error:
+                      code: INVALID_GRANT_TYPE
+                      message: Grant type inválido
+                      detail: O grant_type deve ser 'client_credentials'
+                      timestamp: "2025-10-06T14:30:00Z"
+                      retryable: false
+        "401":
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidCredentials:
+                  summary: Credenciais inválidas
+                  value:
+                    error:
+                      code: INVALID_CREDENTIALS
+                      message: Credenciais inválidas
+                      detail: O client_id ou client_secret fornecidos no header Authorization são inválidos
+                      timestamp: "2025-10-06T14:30:00Z"
+                      retryable: false
+                MissingAuthorization:
+                  summary: Header Authorization ausente
+                  value:
+                    error:
+                      code: MISSING_AUTHORIZATION
+                      message: Header Authorization ausente
+                      detail: O header Authorization com as credenciais base64(client_id:client_secret) é obrigatório
+                      timestamp: "2025-10-06T14:30:00Z"
+                      retryable: false
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BasicAuth: []
   /api/v1/pre-payment/qrcode:
     post:
       summary: Request Pix QrCode for recharge payment
@@ -17,34 +113,29 @@ paths:
         > 2、Does "cashbackValue" refer to the "Saldo Financeiro mês anterior" (Previous Month's Financial Balance) mentioned in RN65?
         > If that's the case, we need to implement "Controle e exibição de Saldo e Opções de Recarga" (Control and display of Balance and Recharge Options). However, no parameters associated with this option have been found in the payment interface (i.e., the current interface).*
 
-         ### Answear
-         **1.** The input parameter ***requestedValue*** and the output parameter ***paymentValue*** may be different. This occurs, for example, when the customer has a cashback from the last billing. In this case, the cashback amount is deducted from ***requestedValue***, resulting in a lower ***paymentValue***.  
-         
-           Regarding the generation of Tokens, we understand that they must be linked to the amount that will actually be recharged in the customer's meter. This is because, if the customer has debts to be settled, ORCA must reserve 10% of ***requestedValue***, allocating it to the debt settlement. The resulting difference will be used for the recharge.  
-           
-         Therefore, it is important to highlight that ***requestedValue***, ***paymentValue***, and ***Recharge Value*** may be different, depending on the existence of cashback and/or a reserve for debts.
+        ### Answear
+        **1.** The input parameter ***requestedValue*** and the output parameter ***paymentValue*** may be different. This occurs, for example, when the customer has a cashback from the last billing. In this case, the cashback amount is deducted from ***requestedValue***, resulting in a lower ***paymentValue***.
 
-         **Practical example:**
-         
-          ***requestedValue*** = R$ 150.00  
-          ***cashbackValue*** = R$ 10.00  
-          ***paymentValue*** = ***requestedValue*** – ***cashbackValue*** = R$ 140.00  
-          ***debtTx.amt*** = ***requestedValue*** × 0.1 = R$ 15.00  
-          ***Recharge Value*** = ***requestedValue*** – ***debtTx.amt*** = R$ 135.00  
-          ***Original Credit Amt*** = Recharge Value + rounding = R$ 135.00 + R$ 0.30 = R$ 135.30 
-          
-          **Question:**
-          
-          It remains to be defined whether the generated Tokens should be associated with:  
-          - **Recharge Value** ;
-          - **Original Credit Amt** ; or 
-          - **creditTx.amt** .
-          
-          
-        **2.** The output parameter ***cashbackValue*** is controlled by Energisa. This value originates from the last billing, in cases where the customer's bill amount was lower than the recharge amount. Thus, when ORCA requests the generation of the QRCode, Energisa will verify if cashback is available. If it exists, the amount will be deducted from ***requestedValue***.  
+        Regarding the generation of Tokens, we understand that they must be linked to the amount that will actually be recharged in the customer's meter. This is because, if the customer has debts to be settled, ORCA must reserve 10% of ***requestedValue***, allocating it to the debt settlement. The resulting difference will be used for the recharge.
+
+        Therefore, it is important to highlight that ***requestedValue***, ***paymentValue***, and ***Recharge Value*** may be different, depending on the existence of cashback and/or a reserve for debts.
+
+        **Practical example:**
+        ***requestedValue*** = R$ 150.00
+        ***cashbackValue*** = R$ 10.00
+        ***paymentValue*** = ***requestedValue*** – ***cashbackValue*** = R$ 140.00
+        ***debtTx.amt*** = ***requestedValue*** × 0.1 = R$ 15.00
+        ***Recharge Value*** = ***requestedValue*** – ***debtTx.amt*** = R$ 135.00
+        ***Original Credit Amt*** = Recharge Value + rounding = R$ 135.00 + R$ 0.30 = R$ 135.30
+
+        **Question:** It remains to be defined whether the generated Tokens should be associated with:
+        - **Recharge Value** ;
+        - **Original Credit Amt** ; or
+        - **creditTx.amt** .
+
+        **2.** The output parameter ***cashbackValue*** is controlled by Energisa. This value originates from the last billing, in cases where the customer's bill amount was lower than the recharge amount. Thus, when ORCA requests the generation of the QRCode, Energisa will verify if cashback is available. If it exists, the amount will be deducted from ***requestedValue***.
 
         The ***cashbackValue*** will be sent to ORCA so that this information can be displayed in the customer's statement, showing that they paid a lower amount because they had a discount related to the cashback.
-
       tags:
         - Faturamento
       parameters: []
@@ -76,11 +167,6 @@ paths:
                   description: Requested recharge value
                   format: decimal
                   example: 100.75
-                exceedValue:
-                  type: number
-                  description: Excess balance recharge value
-                  format: decimal
-                  example: 10
                 rechargeId:
                   type: string
                   description: Recharge Identifier generated by the requester
@@ -118,14 +204,17 @@ paths:
                     description: paymentValue = requestedValue - cashbackValue
                     format: decimal
                     example: 100.75
-                  cashbackValue:
+                  exceedValue:
                     type: number
-                    description: cashbackValue is controlled by Energisa. This value originates from the last billing, in cases where the customer's bill amount was lower than the recharge amount.
-                      Thus, when ORCA requests the generation of the QRCode, Energisa will verify if cashback
-                      is available. If it exists, the amount will be deducted from requestedValue.
+                    description: Excess balance recharge value
                     format: decimal
                     example: 10
-          headers: {}
+                  cashbackValue:
+                    type: number
+                    description: cashbackValue is controlled by Energisa. This value originates from the last billing, in cases where the customer's bill amount was lower than the recharge amount. Thus, when ORCA requests the generation of the QRCode, Energisa will verify if cashback is available. If it exists, the amount will be deducted from requestedValue.
+                    format: decimal
+                    example: 10
+              headers: {}
         "400":
           $ref: '#/components/responses/BadRequest'
         "404":
@@ -141,12 +230,12 @@ paths:
       deprecated: false
       description: |-
         ### Clarify
-         1、We intend to delete fields companyId, uc, and companyId, as they are unnecessary in the notifications and are not what users need to care about.
-         2、Added a new field timestamp.
+        1、We intend to delete fields companyId, uc, and companyId, as they are unnecessary in the notifications and are not what users need to care about.
+        2、Added a new field timestamp.
+
         ### Answer:
-         1、Company identifier. Required because each company has its own database, and this field allows the system to determine in which database the related meter is stored. It is assumed that the company code (companyId) is already registered in your systems and linked to each meter.
-         
-         2 - Ok
+        1、Company identifier. Required because each company has its own database, and this field allows the system to determine in which database the related meter is stored. It is assumed that the company code (companyId) is already registered in your systems and linked to each meter.
+        2 - Ok
       tags:
         - Atendimento
       parameters: []
@@ -188,7 +277,7 @@ paths:
                   type: integer
                   description: A timestamp that represents the time when a low-balance event occurred
                   format: long
-            examples: {}
+          examples: {}
       responses:
         "200":
           description: Notification successfully registered
@@ -205,7 +294,7 @@ paths:
                     type: string
                     description: Correlation id registered in the notification (just for checking if necessary)
                     example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
-          headers: {}
+              headers: {}
         "400":
           $ref: '#/components/responses/BadRequest'
         "401":
@@ -226,19 +315,13 @@ paths:
       description: |-
         ### Clarify
         Could you explain this interface, we want to know how to use it and why use it
-             
-        This endpoint will be used in the integration of the web page that your team will develop.  
 
-        The basic idea is:  
-        - The customer will access a web page through a URL such as:  
-          `www.paginawebhexing.com/uuid=xxx...`  
-        - When the page is opened with this UUID in the URL, your system should call this endpoint, passing the same UUID.  
-        - The endpoint validates the UUID and returns the necessary data for building the page.  
+        This endpoint will be used in the integration of the web page that your team will develop. The basic idea is:
+        - The customer will access a web page through a URL such as: www.paginawebhexing.com/uuid=xxx...
+        - When the page is opened with this UUID in the URL, your system should call this endpoint, passing the same UUID.
+        - The endpoint validates the UUID and returns the necessary data for building the page.
 
-        The exact structure and set of returned data are still being defined.  
-        The purpose of this endpoint is to ensure that the UUID is valid and to provide information needed to render the page correctly.  
-
-        A more complete specification of the integration flow (including response fields and data mapping) will be provided later.
+        The exact structure and set of returned data are still being defined. The purpose of this endpoint is to ensure that the UUID is valid and to provide information needed to render the page correctly. A more complete specification of the integration flow (including response fields and data mapping) will be provided later.
       tags:
         - Atendimento
       parameters:
@@ -276,19 +359,17 @@ paths:
                         type: number
                         example: 5
                       cdc:
-                       type: number
-                       example: 1223344
+                        type: number
+                        example: 1223344
                       webCompanyCode:
                         description: Used to open a protocol
                         type: number
                         example: 1
-                      originChannel :
+                      originChannel:
                         $ref: '#/components/schemas/OriginChannelType'
                         description: Used to open a protocol
                         example: AD
-                          
-                      
-          headers: {}
+              headers: {}
         "400":
           $ref: '#/components/responses/BadRequest'
         "401":
@@ -344,7 +425,7 @@ paths:
                 - units
                 - meterNumber
                 - tokens
-            examples: {}
+          examples: {}
       responses:
         "200":
           description: Recharge successfully completed
@@ -361,7 +442,7 @@ paths:
                     type: string
                     description: Correlation id registered in the notification (just for checking if necessary)
                     example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
-          headers: {}
+              headers: {}
         "400":
           $ref: '#/components/responses/BadRequest'
         "401":
@@ -474,15 +555,15 @@ paths:
         "500":
           description: Ocorreu um erro inesperado.
 components:
-  schemas: 
+  schemas:
     CompanyId:
       type: string
       description: Energisa Company Identifier
       enum: [EMR, ESE, EPB, ETO, EMT, EMS, ESS, EAC, ERO]
     OriginChannelType:
-        type : string
-        description: Channel from which the page was accessed.
-        enum: [AD,EON,SIATT]
+      type: string
+      description: Channel from which the page was accessed.
+      enum: [AD, EON, SIATT]
     ErrorResponse:
       type: object
       properties:
@@ -615,7 +696,6 @@ components:
                   detail: O UUID fornecido não está no formato válido. Esperado - formato UUID v4
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     Unauthorized:
       description: Unauthorized - authentication is required or has failed
       content:
@@ -693,7 +773,6 @@ components:
                   detail: O cliente com a UC fornecida não foi encontrado no sistema
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     NotFound:
       description: Resource not found
       content:
@@ -746,7 +825,6 @@ components:
                   detail: Não existe uma sessão associada ao UUID fornecido
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     Conflict:
       description: Conflict with current state of the resource
       content:
@@ -781,7 +859,6 @@ components:
                   detail: O status desta recarga já foi registrado anteriormente como concluída
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     Gone:
       description: Gone - resource existed but is no longer available (expired)
       content:
@@ -798,7 +875,6 @@ components:
                   detail: A sessão associada a este UUID expirou. O tempo de validade é de 5 minutos
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: false
-    
     GatewayTimeout:
       description: Gateway Timeout - upstream service did not respond in time
       content:
@@ -842,7 +918,6 @@ components:
                   detail: Não foi possível notificar o cliente sobre o resultado da recarga dentro do tempo limite
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: true
-    
     InternalServerError:
       description: Internal Server Error. An unexpected error occurred on the server.
       content:
@@ -859,11 +934,21 @@ components:
                   detail: Ocorreu um erro inesperado ao processar a requisição
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: true
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+      description: |-
+        Autenticação Basic usando client_id e client_secret.
 
-    
-
-  securitySchemes: {}
+        O header Authorization deve conter: Basic base64(client_id:client_secret)
 servers:
-  - url: http://dev-cn.your-api-server.com
-    description: Development Environment
+  - url: https://hml-api.energisa.io
+    description: Stagging Environment
+  - url: https://api.energisa.io
+    description: Prodcution Environment
+  - url: https://hml-apis.energisa.io
+    description: Stagging Environment with mTLS
+  - url: https://apis.energisa.io
+    description: Prodocution Environment with mTLS
 security: []
