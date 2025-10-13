@@ -604,10 +604,22 @@ components:
     RetornoProtocoloResultadoObjeto:
       type: object
       properties:
+        objeto:
+          type: object
+          properties:
+            protocoloAtendimento:
+              type: integer
+              format: int64
+              example: 9559495981
+        codigo:
+          type: string
+          example: "OK"
+        mensagem:
+          type: string
+          example: "Interação registrada com sucesso."
         categoria:
           type: string
-          nullable: true
-          readOnly: true
+          example: "OK"
     CredenciaisUsuarioEmpresaParceiraApi:
       type: object
       properties:
