@@ -103,7 +103,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       security:
         - BasicAuth: []
-  '/{version}/UsuarioEmpresaParceira':
+  '/autenticacao/{version}/UsuarioEmpresaParceira':
     post:
       summary: Realiza a autenticação de clientes externos da API
       deprecated: false
@@ -134,7 +134,7 @@ paths:
           description: Erro de validação de parâmetros de entrada.
         "500":
           description: Ocorreu um erro inesperado.
-  /cliente/v1/pre-payment/qrcode:
+  /clientes/v1/pre-payment/qrcode:
     post:
       summary: Request Pix QrCode for recharge payment
       deprecated: false
@@ -255,7 +255,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
-  /cliente/v1/pre-payment/notification/low-balance:
+  /clientes/v1/pre-payment/notification/low-balance:
     post:
       summary: Notify the alerts related to Pre-Payment Customer Balance
       deprecated: false
@@ -338,7 +338,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
-  /cliente/v1/pre-payment/session/{uuid}:
+  /clientes/v1/pre-payment/session/{uuid}:
     get:
       summary: Validade unique session key and return linked customer data
       deprecated: false
@@ -422,7 +422,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
-  /cliente/v1/pre-payment/notification/recharge-status:
+  /clientes/v1/pre-payment/notification/recharge-status:
     post:
       summary: Notify the result of the recharge issuance to the meter
       deprecated: false
@@ -497,7 +497,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
       security: []
-  '/{version}/Atendimento/{CodigoEmpresaWeb}/{Cdc}/{DigitoVerificador}/{TipoInteracao}/{CodigoAcao}':
+  '/clientes/{version}/Atendimento/{CodigoEmpresaWeb}/{Cdc}/{DigitoVerificador}/{TipoInteracao}/{CodigoAcao}':
     get:
       summary: Gera protocolo de atendimento ao cliente
       deprecated: false
