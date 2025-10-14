@@ -1,7 +1,12 @@
 openapi: 3.0.1
 info:
   title: API ENERGISA
-  description: ""
+  description: |-
+    **Authentication overview**
+
+    - **Billing endpoints**: require only the OAuth access token. Send it in the header as `Authorization: Bearer <access_token>`.
+    - **Partner Company authentication endpoint** (`/autenticacao/{version}/UsuarioEmpresaParceira`): requires the OAuth access token **and** the client's credentials (`clientId` and `password`) to obtain the **Partner Company Token**.
+    - **All other endpoints**: require **both** tokens — the OAuth access token **and** the Partner Company Token — to be provided with each request.
   version: 1.0.0
 tags:
   - name: Autenticação

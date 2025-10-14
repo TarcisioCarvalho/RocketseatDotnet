@@ -1,9 +1,8 @@
 ﻿using CashFlow.Domain.Entities;
 
 namespace CashFlow.Domain.Repositories.Expenses;
-public interface IExpensesRepository
+public interface IExepensesReadOnlyRepository
 {
-    Task Add(Expense expense);
     Task<IList<Expense>> GetAll();
     Task<Expense?> GetById(long id);
 }
