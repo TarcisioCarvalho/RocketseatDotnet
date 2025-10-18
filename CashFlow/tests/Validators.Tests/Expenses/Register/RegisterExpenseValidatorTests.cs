@@ -1,4 +1,4 @@
-﻿using CashFlow.Application.UseCases.Expenses.Register;
+﻿using CashFlow.Application.UseCases.Expenses;
 using CashFlow.Exception;
 using CommonTestUtilities.Requests;
 
@@ -10,7 +10,7 @@ public class RegisterExpenseValidatorTests
     [Fact]
     public void Success()
     {
-        var validator = new RegisterExpenseValidator();
+        var validator = new ExpenseValidator();
         
         var request = RequestRegisterExpenseJsonBuilder.Build();
         var result = validator.Validate(request);
@@ -23,7 +23,7 @@ public class RegisterExpenseValidatorTests
     [InlineData(null)]
     public void Error_Title_Empty(string title)
     {
-        var validator = new RegisterExpenseValidator();
+        var validator = new ExpenseValidator();
         var request = RequestRegisterExpenseJsonBuilder.Build();
         request.Title = title;
 
@@ -36,7 +36,7 @@ public class RegisterExpenseValidatorTests
     [Fact]
     public void Error_Title_TooLong()
     {
-        var validator = new RegisterExpenseValidator();
+        var validator = new ExpenseValidator();
         var request = RequestRegisterExpenseJsonBuilder.Build();
         request.Title = new string('a', 101);
         var result = validator.Validate(request);
