@@ -10,7 +10,8 @@ public class BillingsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromServices] IDbConnection dbConnection)
     {
-        var result = await dbConnection.QueryFirstAsync<int>("Select 1");
+        var result = await dbConnection.QueryFirstAsync<DateTime>("Select Now()");
+        
         return Ok("Billing created");
     }
 }
