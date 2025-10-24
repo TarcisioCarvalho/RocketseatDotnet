@@ -1,6 +1,7 @@
 using BarberBoss.Api.Filters;
 using BarberBoss.Infrastructure;
 using System.Text.Json.Serialization;
+using BarberBoss.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddMvc(options => options.Filters.Add(typeof(ExceptionFilter)));
 builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
 
 var app = builder.Build();
 
