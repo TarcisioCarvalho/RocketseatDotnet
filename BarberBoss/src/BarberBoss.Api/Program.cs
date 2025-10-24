@@ -1,7 +1,7 @@
 using BarberBoss.Api.Filters;
+using BarberBoss.Application;
 using BarberBoss.Infrastructure;
 using System.Text.Json.Serialization;
-using BarberBoss.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
