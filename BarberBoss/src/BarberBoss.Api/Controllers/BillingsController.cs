@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using BarberBoss.Communication.Requests;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 
@@ -8,10 +9,8 @@ namespace BarberBoss.Api.Controllers;
 public class BillingsController : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Create([FromServices] IDbConnection dbConnection)
+    public async Task<IActionResult> Create([FromBody] RequestRegisterBillingJson request)
     {
-        var result = await dbConnection.QueryFirstAsync<DateTime>("Select Now()");
-        
-        return Ok("Billing created");
+        return Ok(request);
     }
 }

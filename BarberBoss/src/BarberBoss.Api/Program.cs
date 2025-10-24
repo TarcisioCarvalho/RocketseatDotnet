@@ -1,3 +1,4 @@
+using BarberBoss.Api.Filters;
 using BarberBoss.Infrastructure;
 using System.Text.Json.Serialization;
 
@@ -14,6 +15,7 @@ builder.Services.AddControllers()
             new JsonStringEnumConverter());
     });
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddMvc(options => options.Filters.Add(typeof(ExceptionFilter)));
 builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
 
