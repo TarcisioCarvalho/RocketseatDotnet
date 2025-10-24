@@ -1,5 +1,6 @@
 ﻿using BarberBoss.Communication.Requests;
 using BarberBoss.Communication.Responses;
+using BarberBoss.Domain.DTOs;
 using BarberBoss.Domain.Entitie;
 
 namespace BarberBoss.Application.Mappers;
@@ -28,5 +29,24 @@ public static class BillingMapper
         {
             Id = billing.Id,
         };
+    }
+
+    public static ResponseShortBillingJson ToResponseShortBillingJson(this BillingShort billingShort)
+    {
+        return new ResponseShortBillingJson
+        {
+            Id = billingShort.Id,
+            Date = billingShort.Date,
+            Status = (Communication.Enums.Status)(int)billingShort.Status
+        };
+    }
+
+    public static ResponseBillingsJson ToResponseBillingsJson(this IEnumerable<BillingShort> billingShorts)
+    {
+        var response = new ResponseBillingsJson
+        {
+            Billings = billingShorts.Select(bs => bs.ToResponseShortBillingJson()).ToList()
+        };
+        return response;
     }
 }

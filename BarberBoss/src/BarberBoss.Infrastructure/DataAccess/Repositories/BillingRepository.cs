@@ -1,11 +1,12 @@
-﻿using BarberBoss.Domain.Entitie;
+﻿using BarberBoss.Domain.DTOs;
+using BarberBoss.Domain.Entitie;
 using BarberBoss.Domain.Repositories;
 using BarberBoss.Infrastructure.DataAccess.Queries;
 using Dapper;
 using System.Data;
 
 namespace BarberBoss.Infrastructure.DataAccess.Repositories;
-public class BillingRepository : IBillingWriteOnlyRepository
+public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRepository
 {
     private readonly IDbConnection _connection;
 
@@ -22,5 +23,16 @@ public class BillingRepository : IBillingWriteOnlyRepository
         p.Add("Status", billing.Status.ToString());
 
         await _connection.ExecuteAsync(InsertBillingQuery.Query, p);
+    }
+
+    public async Task<IEnumerable<BillingShort>> GetAll()
+    {
+        var result = await _connection.QueryAsync<BillingShort>(GetAllBillings.Query);
+        return result;
+    }
+
+    public Task<Billing?> GetById(Guid id)
+    {
+        throw new NotImplementedException();
     }
 }

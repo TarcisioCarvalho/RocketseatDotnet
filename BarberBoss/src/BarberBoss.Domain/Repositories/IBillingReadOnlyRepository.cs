@@ -1,8 +1,9 @@
-﻿using BarberBoss.Domain.Entitie;
+﻿using BarberBoss.Domain.DTOs;
+using BarberBoss.Domain.Entitie;
 
 namespace BarberBoss.Domain.Repositories;
 public interface IBillingReadOnlyRepository
 {
-    Task<IEnumerable<Billing>> GetAll();
+    Task<IEnumerable<BillingShort>> GetAll();
     Task<Billing?> GetById(Guid id);
 }
