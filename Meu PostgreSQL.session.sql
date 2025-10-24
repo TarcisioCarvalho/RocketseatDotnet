@@ -92,5 +92,5 @@ CREATE TABLE billings (
         (status = 'Canceled' AND amount = 0) OR (status != 'Canceled')
     )
 );
-
+ALTER TABLE billings ALTER COLUMN updated_at DROP NOT NULL;
 SELECT * From billings;

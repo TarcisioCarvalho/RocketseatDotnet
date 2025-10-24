@@ -20,7 +20,7 @@ public class ExceptionFilter : IExceptionFilter
     private void HandleProjectException(ExceptionContext context)
     {
         var barberBossException = context.Exception as BarberBossException;
-        var errorResponse = new ResponseErrorJson(barberBossException.GetErrors());
+        var errorResponse = new ResponseErrorJson(barberBossException.GetErrors().ToList());
         context.HttpContext.Response.StatusCode = barberBossException.StatusCode;
         context.Result = new ObjectResult(errorResponse);
     }

@@ -5,6 +5,6 @@ public abstract class BarberBossException : SystemException
     public BarberBossException(string message) : base(message) { }
 
     public abstract int StatusCode { get; }
-    public abstract List<string> GetErrors();
+    public abstract IReadOnlyList<string> GetErrors();
 
 }
