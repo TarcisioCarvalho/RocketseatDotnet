@@ -6,7 +6,7 @@ using Dapper;
 using System.Data;
 
 namespace BarberBoss.Infrastructure.DataAccess.Repositories;
-public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRepository
+public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRepository, IBillingUpdateOnlyRepository
 {
     private readonly IDbConnection _connection;
 
@@ -35,5 +35,23 @@ public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRe
     {
         var result = await _connection.QuerySingleOrDefaultAsync<Billing>(GetBillingByIdQuery.Query, new { Id = id });
         return result;
+    }
+
+    public async Task Update(Guid id, BillingUpdated billingUpdated)
+    {
+        try
+        {
+            var p = new DynamicParameters(billingUpdated);
+            p.Add("Id", id);
+            p.Add("PaymentMethod", billingUpdated.PaymentMethod.ToString());
+            p.Add("Status", billingUpdated.Status.ToString());
+            await _connection.ExecuteAsync(UpdateBillingQuery.Sql, p);
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 }

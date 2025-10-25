@@ -5,6 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CashFlow.Infrastructure.DataAccess.Mappers;
-internal class SnakeCaseMapper
+public static class SnakeCaseMapper
 {
+    public static void Configure()
+    {
+        DefaultTypeMap.
+    }
 }

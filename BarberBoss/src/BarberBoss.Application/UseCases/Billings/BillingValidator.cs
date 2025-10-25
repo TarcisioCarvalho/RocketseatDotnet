@@ -5,7 +5,7 @@ using BarberBoss.Communication.Requests;
 namespace BarberBoss.Application.UseCases.Billings;
 public class BillingValidator
 {
-    public ValidationResult Validate(RequestRegisterBillingJson request)
+    public ValidationResult Validate(RequestBillingJson request)
     {
         var validationResult = new ValidationResult();
         validationResult

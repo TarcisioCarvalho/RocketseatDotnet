@@ -21,6 +21,7 @@ public static class DependecyInjectionExtension
     {
         services.AddScoped<IBillingWriteOnlyRepository, BillingRepository>();
         services.AddScoped<IBillingReadOnlyRepository, BillingRepository>();
+        services.AddScoped<IBillingUpdateOnlyRepository, BillingRepository>();
     }
 }
 

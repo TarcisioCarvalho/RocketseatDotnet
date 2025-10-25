@@ -1,7 +1,7 @@
-﻿using BarberBoss.Communication.Enums;
+﻿using BarberBoss.Domain.Enums;
 
-namespace BarberBoss.Communication.Requests;
-public class RequestRegisterBillingJson
+namespace BarberBoss.Domain.DTOs;
+public class BillingUpdated
 {
     public DateTime Date { get; set; }
     public string BarberName { get; set; } = string.Empty;
@@ -9,6 +9,7 @@ public class RequestRegisterBillingJson
     public string ServiceName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
-    public Status Status { get; set; } 
+    public Status Status { get; set; }
     public string Notes { get; set; } = string.Empty;
+    public DateTime? UpdatedAt { get; set; }
 }

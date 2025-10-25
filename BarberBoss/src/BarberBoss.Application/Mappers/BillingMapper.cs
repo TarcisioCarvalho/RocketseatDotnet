@@ -6,7 +6,7 @@ using BarberBoss.Domain.Entitie;
 namespace BarberBoss.Application.Mappers;
 public static class BillingMapper
 {
-    public static Billing ToBilling(this RequestRegisterBillingJson request)
+    public static Billing ToBilling(this RequestBillingJson request)
     {
         return new Billing
         {
@@ -21,6 +21,21 @@ public static class BillingMapper
             Notes = request.Notes,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
+        };
+    }
+    public static BillingUpdated ToBillingUpdate(this RequestBillingJson request)
+    {
+        return new BillingUpdated
+        {
+            Date = request.Date,
+            BarberName = request.BarberName,
+            ClientName = request.ClientName,
+            ServiceName = request.ServiceName,
+            Amount = request.Amount,
+            PaymentMethod = (Domain.Enums.PaymentMethod)(int)request.PaymentMethod,
+            Status = (Domain.Enums.Status)(int)request.Status,
+            Notes = request.Notes,
+            UpdatedAt = DateTime.UtcNow,
         };
     }
     public static ResponseRegisterBillingJson ToResponseRegisterBillingJson(this Billing billing)

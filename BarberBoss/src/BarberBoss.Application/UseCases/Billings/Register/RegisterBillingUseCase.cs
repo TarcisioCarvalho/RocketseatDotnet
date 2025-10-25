@@ -1,4 +1,5 @@
-﻿using BarberBoss.Application.Mappers;
+﻿using BarberBoss.Application.Common.Validation;
+using BarberBoss.Application.Mappers;
 using BarberBoss.Communication.Requests;
 using BarberBoss.Communication.Responses;
 using BarberBoss.Domain.Repositories;
@@ -13,21 +14,11 @@ public class RegisterBillingUseCase : IRegisterBillingUseCase
     {
         _billingWriteOnlyRepository = billingWriteOnlyRepository;
     }
-    public async Task<ResponseRegisterBillingJson> Execute(RequestRegisterBillingJson request)
+    public async Task<ResponseRegisterBillingJson> Execute(RequestBillingJson request)
     {
-        Validate(request);
+        ValidateRequest.Validate(request);
         var billing = request.ToBilling();
         await  _billingWriteOnlyRepository.Add(billing);
         return billing.ToResponseRegisterBillingJson();
-    }
-
-    private void Validate(RequestRegisterBillingJson request)
-    {
-        var billingValidator = new BillingValidator();
-        var validationResult = billingValidator.Validate(request);
-        if ((!validationResult.IsValid))
-        {
-            throw new ErrorOnValidationException(validationResult.Errors);
-        }
     }
 }
