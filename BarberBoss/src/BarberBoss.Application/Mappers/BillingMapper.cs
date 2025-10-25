@@ -49,4 +49,22 @@ public static class BillingMapper
         };
         return response;
     }
+
+    public static ResponseBillingJson ToResponseBillingJson(this Billing billing)
+    {
+        return new ResponseBillingJson
+        {
+            Id = billing.Id,
+            Date = billing.Date,
+            BarberName = billing.BarberName,
+            ClientName = billing.ClientName,
+            ServiceName = billing.ServiceName,
+            Amount = billing.Amount,
+            PaymentMethod = (Communication.Enums.PaymentMethod)(int)billing.PaymentMethod,
+            Status = (Communication.Enums.Status)(int)billing.Status,
+            Notes = billing.Notes,
+            CreatedAt = billing.CreatedAt,
+            UpdatedAt = billing.UpdatedAt
+        };
+    }
 }

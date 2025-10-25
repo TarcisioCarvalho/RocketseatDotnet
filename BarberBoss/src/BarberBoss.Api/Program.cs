@@ -1,6 +1,7 @@
 using BarberBoss.Api.Filters;
 using BarberBoss.Application;
 using BarberBoss.Infrastructure;
+using BarberBoss.Infrastructure.DataAccess.Mappers;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+SnakeCaseMapper.Configure();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

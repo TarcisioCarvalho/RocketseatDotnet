@@ -31,8 +31,9 @@ public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRe
         return result;
     }
 
-    public Task<Billing?> GetById(Guid id)
+    public async Task<Billing?> GetById(Guid id)
     {
-        throw new NotImplementedException();
+        var result = await _connection.QuerySingleOrDefaultAsync<Billing>(GetBillingByIdQuery.Query, new { Id = id });
+        return result;
     }
 }

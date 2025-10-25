@@ -9,7 +9,7 @@ public class ExceptionFilter : IExceptionFilter
 {
     public void OnException(ExceptionContext context)
     {
-        if(context is BarberBossException)
+        if(context.Exception is BarberBossException)
         {
             HandleProjectException(context);
             return;

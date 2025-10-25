@@ -94,3 +94,17 @@ CREATE TABLE billings (
 );
 ALTER TABLE billings ALTER COLUMN updated_at DROP NOT NULL;
 SELECT * From billings;
+ SELECT 
+     id, 
+     date, 
+     barber_name, 
+     client_name, 
+     service_name, 
+     amount, 
+     payment_method, 
+     status, 
+     notes, 
+     created_at,
+     updated_at
+ FROM billings
+ WHERE id = 'e481c575-ef15-40d2-9af2-54da0ee878b5'

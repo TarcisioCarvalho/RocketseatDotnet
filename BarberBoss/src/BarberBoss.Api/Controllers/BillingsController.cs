@@ -1,4 +1,5 @@
 ﻿using BarberBoss.Application.UseCases.Billings.GetAll;
+using BarberBoss.Application.UseCases.Billings.GetById;
 using BarberBoss.Application.UseCases.Billings.Register;
 using BarberBoss.Communication.Requests;
 using BarberBoss.Communication.Responses;
@@ -12,10 +13,10 @@ public class BillingsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(ResponseRegisterBillingJson), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromServices] IRegisterBillingUseCase registerBillingUseCase,[FromBody] RequestRegisterBillingJson request)
+    public async Task<IActionResult> Create([FromServices] IRegisterBillingUseCase registerBillingUseCase, [FromBody] RequestRegisterBillingJson request)
     {
         var response = await registerBillingUseCase.Execute(request);
-        return Created(string.Empty,response);
+        return Created(string.Empty, response);
     }
 
     [HttpGet]
@@ -26,6 +27,18 @@ public class BillingsController : ControllerBase
         var response = await getAllBillingUseCase.Execute();
         if (response.Billings.Any() is false)
             return NoContent();
+        return Ok(response);
+    }
+
+    [HttpGet]
+    [Route("{id:guid}")]
+    [ProducesResponseType(typeof(ResponseBillingJson), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBillingById([FromServices] IGetBillingByIdUseCase getBillingByIdUseCase, [FromRoute] Guid id)
+    {
+        var response = await getBillingByIdUseCase.Execute(id);
+        if (response is null)
+            return NotFound();
         return Ok(response);
     }
 }
