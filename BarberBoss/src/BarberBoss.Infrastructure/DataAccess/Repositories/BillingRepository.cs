@@ -25,6 +25,13 @@ public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRe
         await _connection.ExecuteAsync(InsertBillingQuery.Query, p);
     }
 
+    public async Task Delete(Guid id)
+    {
+        var p = new DynamicParameters();
+        p.Add("Id", id);
+        await _connection.ExecuteAsync(DeleteBillingQuery.Sql, p);
+    }
+
     public async Task<IEnumerable<BillingShort>> GetAll()
     {
         var result = await _connection.QueryAsync<BillingShort>(GetAllBillings.Query);
