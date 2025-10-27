@@ -20,9 +20,9 @@ public static class ValidationExtensions
 
     public static ValidationResult IsGreaterThan(this ValidationResult result, decimal value, string fieldName, decimal minValue)
     {
-        if (value <= minValue)
+        if (value < minValue)
         {
-            result.AddError($"{fieldName} deve ser maior que {minValue}.");
+            result.AddError($"{fieldName} deve ser maior ou igual a {minValue}.");
         }
         return result;
     }

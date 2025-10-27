@@ -16,8 +16,15 @@ internal class GetAllBillingUseCase : IGetAllBillingUseCase
     {
         ValidateRequest.ValidatePagination(request);
         var (billings, totalBillings) = await _billingReadOnlyRepository.GetAll(request.Page, request.PageSize);
-        var result = billings.ToResponseBillingsJson();
-        result.Total = totalBillings;
+        var result = billings.ToResponseBillingsJson(request.Page, request.PageSize, totalBillings);
         return result;
+    }
+
+    private ResponseBillingsJson SetupResponseBillingsJson(ResponseBillingsJson billingsJson)
+    {
+        billingsJson.TotalPages = (int)Math.Ceiling((double)billingsJson.Total / billingsJson.PageSize);
+        billingsJson.HasNextPage = billingsJson.Page < billingsJson.TotalPages;
+        billingsJson.HasPreviousPage = billingsJson.Page > 1;
+        return billingsJson;
     }
 }

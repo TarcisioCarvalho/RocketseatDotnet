@@ -56,11 +56,17 @@ public static class BillingMapper
         };
     }
 
-    public static ResponseBillingsJson ToResponseBillingsJson(this IEnumerable<BillingShort> billingShorts)
+    public static ResponseBillingsJson ToResponseBillingsJson(this IEnumerable<BillingShort> billingShorts, int page, int PageSize, int total)
     {
         var response = new ResponseBillingsJson
         {
-            Billings = billingShorts.Select(bs => bs.ToResponseShortBillingJson()).ToList()
+            Billings = billingShorts.Select(bs => bs.ToResponseShortBillingJson()).ToList(),
+            Page = page,
+            PageSize = PageSize,
+            Total = total,
+            TotalPages = (int)Math.Ceiling((double)total / PageSize),
+            HasNextPage = page < (int)Math.Ceiling((double)total / PageSize),
+            HasPreviousPage = page > 1
         };
         return response;
     }
