@@ -32,12 +32,22 @@ public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRe
         await _connection.ExecuteAsync(DeleteBillingQuery.Sql, p);
     }
 
-    public async Task<(IEnumerable<BillingShort>,int)> GetAll(int page, int pageSize)
+    public async Task<(IEnumerable<BillingShort>, int, decimal)> GetAll(int page, int pageSize, DateTime? startDate, DateTime? endDate)
     {
         var offSet = (page - 1) * pageSize;
-        var billings = await _connection.QueryAsync<BillingShort>(GetAllBillings.Query, new { OffSet = offSet, PageSize = pageSize });
+        try
+        {
+        var billings = await _connection.QueryAsync<BillingShort>(GetAllBillings.Query, new { OffSet = offSet, PageSize = pageSize, StartDate = startDate, EndDate = endDate });
         var totalBillings = await _connection.ExecuteScalarAsync<int>(GetAllBillings.CountQuery);
-        return (billings, totalBillings);
+        var totalAmount = await _connection.ExecuteScalarAsync<decimal>(GetAllBillings.SumTotalAmountQuery, new { StartDate = startDate, EndDate = endDate });
+        return (billings, totalBillings, totalAmount);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+
     }
 
     public async Task<Billing?> GetById(Guid id)

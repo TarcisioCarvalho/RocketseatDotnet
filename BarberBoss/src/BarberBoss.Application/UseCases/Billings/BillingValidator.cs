@@ -32,4 +32,11 @@ public class BillingValidator
             .IsBetween(request.PageSize, "Tamanho da página", 25, 0);
         return validationResult;
     }
+    public ValidationResult ValidateFilters(RequestBillingsJson request)
+    {
+        var validationResult = new ValidationResult();
+        validationResult
+            .ThisDateMustBeGreaterThan(request.EndDate, "Data de término", request.StartDate);
+        return validationResult;
+    }
 }

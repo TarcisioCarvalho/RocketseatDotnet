@@ -15,16 +15,9 @@ internal class GetAllBillingUseCase : IGetAllBillingUseCase
     public async Task<ResponseBillingsJson> Execute(RequestBillingsJson request)
     {
         ValidateRequest.ValidatePagination(request);
-        var (billings, totalBillings) = await _billingReadOnlyRepository.GetAll(request.Page, request.PageSize);
-        var result = billings.ToResponseBillingsJson(request.Page, request.PageSize, totalBillings);
+        ValidateRequest.ValidateFilters(request);
+        var (billings, totalBillings, totalAmount) = await _billingReadOnlyRepository.GetAll(request.Page, request.PageSize, request.StartDate, request.EndDate);
+        var result = billings.ToResponseBillingsJson(request.Page, request.PageSize, totalBillings, totalAmount);
         return result;
-    }
-
-    private ResponseBillingsJson SetupResponseBillingsJson(ResponseBillingsJson billingsJson)
-    {
-        billingsJson.TotalPages = (int)Math.Ceiling((double)billingsJson.Total / billingsJson.PageSize);
-        billingsJson.HasNextPage = billingsJson.Page < billingsJson.TotalPages;
-        billingsJson.HasPreviousPage = billingsJson.Page > 1;
-        return billingsJson;
     }
 }

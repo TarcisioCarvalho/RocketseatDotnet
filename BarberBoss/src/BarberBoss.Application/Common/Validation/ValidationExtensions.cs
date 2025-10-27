@@ -27,6 +27,16 @@ public static class ValidationExtensions
         return result;
     }
 
+    public static ValidationResult ThisDateMustBeGreaterThan(this ValidationResult result, DateTime? value, string fieldName, DateTime? minValue)
+    {
+        if (value is null || minValue is null) return result;
+        if (value <= minValue)
+        {
+            result.AddError($"{fieldName} deve ser posterior a {minValue}.");
+        }
+        return result;
+    }
+
     public static ValidationResult IsBetween(this ValidationResult result, int value, string fieldName, int maxValue, int minValue)
     {
         if (value >= maxValue)

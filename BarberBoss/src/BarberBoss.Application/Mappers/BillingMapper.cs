@@ -56,7 +56,7 @@ public static class BillingMapper
         };
     }
 
-    public static ResponseBillingsJson ToResponseBillingsJson(this IEnumerable<BillingShort> billingShorts, int page, int PageSize, int total)
+    public static ResponseBillingsJson ToResponseBillingsJson(this IEnumerable<BillingShort> billingShorts, int page, int PageSize, int total, decimal totalAmount)
     {
         var response = new ResponseBillingsJson
         {
@@ -66,7 +66,8 @@ public static class BillingMapper
             Total = total,
             TotalPages = (int)Math.Ceiling((double)total / PageSize),
             HasNextPage = page < (int)Math.Ceiling((double)total / PageSize),
-            HasPreviousPage = page > 1
+            HasPreviousPage = page > 1,
+            TotalAmount = totalAmount
         };
         return response;
     }
