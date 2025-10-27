@@ -18,10 +18,8 @@ public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRe
     public async Task Add(Billing billing)
     {
         var p = new DynamicParameters(billing);
-
         p.Add("PaymentMethod", billing.PaymentMethod.ToString());
         p.Add("Status", billing.Status.ToString());
-
         await _connection.ExecuteAsync(InsertBillingQuery.Query, p);
     }
 
@@ -35,19 +33,16 @@ public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRe
     public async Task<(IEnumerable<BillingShort>, int, decimal)> GetAll(int page, int pageSize, DateTime? startDate, DateTime? endDate)
     {
         var offSet = (page - 1) * pageSize;
-        try
-        {
         var billings = await _connection.QueryAsync<BillingShort>(GetAllBillings.Query, new { OffSet = offSet, PageSize = pageSize, StartDate = startDate, EndDate = endDate });
         var totalBillings = await _connection.ExecuteScalarAsync<int>(GetAllBillings.CountQuery);
         var totalAmount = await _connection.ExecuteScalarAsync<decimal>(GetAllBillings.SumTotalAmountQuery, new { StartDate = startDate, EndDate = endDate });
         return (billings, totalBillings, totalAmount);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+    }
 
+    public async Task<IEnumerable<BillingReport>> GetBillingReport(DateTime? startDate, DateTime? endDate)
+    {
+        var billingsToReport = await _connection.QueryAsync<BillingReport>(GetBillingsToReportQuery.Query, new { StartDate = startDate, EndDate = endDate });
+        return billingsToReport;
     }
 
     public async Task<Billing?> GetById(Guid id)
@@ -58,19 +53,10 @@ public class BillingRepository : IBillingWriteOnlyRepository, IBillingReadOnlyRe
 
     public async Task Update(Guid id, BillingUpdated billingUpdated)
     {
-        try
-        {
-            var p = new DynamicParameters(billingUpdated);
-            p.Add("Id", id);
-            p.Add("PaymentMethod", billingUpdated.PaymentMethod.ToString());
-            p.Add("Status", billingUpdated.Status.ToString());
-            await _connection.ExecuteAsync(UpdateBillingQuery.Sql, p);
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+        var p = new DynamicParameters(billingUpdated);
+        p.Add("Id", id);
+        p.Add("PaymentMethod", billingUpdated.PaymentMethod.ToString());
+        p.Add("Status", billingUpdated.Status.ToString());
+        await _connection.ExecuteAsync(UpdateBillingQuery.Sql, p);
     }
 }

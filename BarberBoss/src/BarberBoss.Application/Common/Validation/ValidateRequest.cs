@@ -33,4 +33,13 @@ public static class ValidateRequest
             throw new ErrorOnValidationException(validationResult.Errors);
         }
     }
+    public static void ValidateFilters(RequestExcelJson request)
+    {
+        var billingValidator = new BillingValidator();
+        var validationResult = billingValidator.ValidateFilters(request);
+        if ((!validationResult.IsValid))
+        {
+            throw new ErrorOnValidationException(validationResult.Errors);
+        }
+    }
 }
