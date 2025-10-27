@@ -23,4 +23,13 @@ public class BillingValidator
         // Add validation logic here
         return validationResult;
     }
+
+    public ValidationResult ValidadePagination(RequestBillingsJson request)
+    {
+        var validationResult = new ValidationResult();
+        validationResult
+            .IsBetween(request.Page, "Número da página", int.MaxValue, 0)
+            .IsBetween(request.PageSize, "Tamanho da página", 25, 0);
+        return validationResult;
+    }
 }

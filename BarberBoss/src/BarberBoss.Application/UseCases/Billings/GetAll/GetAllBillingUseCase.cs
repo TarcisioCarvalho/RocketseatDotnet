@@ -1,4 +1,6 @@
-﻿using BarberBoss.Application.Mappers;
+﻿using BarberBoss.Application.Common.Validation;
+using BarberBoss.Application.Mappers;
+using BarberBoss.Communication.Requests;
 using BarberBoss.Communication.Responses;
 using BarberBoss.Domain.Repositories;
 
@@ -10,10 +12,12 @@ internal class GetAllBillingUseCase : IGetAllBillingUseCase
     {
         _billingReadOnlyRepository = billingReadOnlyRepository;
     }
-    public async Task<ResponseBillingsJson> Execute()
+    public async Task<ResponseBillingsJson> Execute(RequestBillingsJson request)
     {
-        var billings = await _billingReadOnlyRepository.GetAll();
+        ValidateRequest.ValidatePagination(request);
+        var (billings, totalBillings) = await _billingReadOnlyRepository.GetAll(request.Page, request.PageSize);
         var result = billings.ToResponseBillingsJson();
+        result.Total = totalBillings;
         return result;
     }
 }

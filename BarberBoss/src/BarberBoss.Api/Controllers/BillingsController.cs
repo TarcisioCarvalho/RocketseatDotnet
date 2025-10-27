@@ -24,9 +24,9 @@ public class BillingsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(ResponseBillingsJson), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> GetAllBillings([FromServices] IGetAllBillingUseCase getAllBillingUseCase)
+    public async Task<IActionResult> GetAllBillings([FromServices] IGetAllBillingUseCase getAllBillingUseCase, [FromQuery] RequestBillingsJson request)
     {
-        var response = await getAllBillingUseCase.Execute();
+        var response = await getAllBillingUseCase.Execute(request);
         if (response.Billings.Any() is false)
             return NoContent();
         return Ok(response);

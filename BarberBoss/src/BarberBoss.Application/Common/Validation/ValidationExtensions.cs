@@ -27,6 +27,19 @@ public static class ValidationExtensions
         return result;
     }
 
+    public static ValidationResult IsBetween(this ValidationResult result, int value, string fieldName, int maxValue, int minValue)
+    {
+        if (value >= maxValue)
+        {
+            result.AddError($"{fieldName} deve ser menor que {maxValue}.");
+        }
+        if (value <= minValue)
+        {
+            result.AddError($"{fieldName} deve ser maior que {minValue}.");
+        }
+        return result;
+    }
+
     public static ValidationResult ValidEnum<TEnum>(this ValidationResult result,TEnum value, string fieldName) where TEnum : struct, Enum
     {
         if (!Enum.IsDefined(typeof(TEnum), value))

@@ -6,5 +6,13 @@ public static class GetAllBillings
             id, 
             date,
             status
+        FROM billings
+        ORDER BY date DESC
+        LIMIT @PageSize
+        OFFSET @OffSet";
+
+    public const string CountQuery = @"
+        SELECT 
+            COUNT(*) 
         FROM billings";
 }

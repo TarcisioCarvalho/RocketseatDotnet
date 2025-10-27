@@ -4,6 +4,6 @@ using BarberBoss.Domain.Entitie;
 namespace BarberBoss.Domain.Repositories;
 public interface IBillingReadOnlyRepository
 {
-    Task<IEnumerable<BillingShort>> GetAll();
+    Task<(IEnumerable<BillingShort>, int)> GetAll(int page, int pageSize);
     Task<Billing?> GetById(Guid id);
 }

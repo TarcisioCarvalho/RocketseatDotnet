@@ -14,4 +14,14 @@ public static class ValidateRequest
             throw new ErrorOnValidationException(validationResult.Errors);
         }
     }
+
+    public static void ValidatePagination(RequestBillingsJson request)
+    {
+        var billingValidator = new BillingValidator();
+        var validationResult = billingValidator.ValidadePagination(request);
+        if ((!validationResult.IsValid))
+        {
+            throw new ErrorOnValidationException(validationResult.Errors);
+        }
+    }
 }
