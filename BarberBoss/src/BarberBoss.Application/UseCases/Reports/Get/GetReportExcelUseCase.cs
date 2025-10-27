@@ -11,7 +11,7 @@ public class GetReportExcelUseCase : IGetReportExcelUseCase
     {
         _billingReadOnlyRepository = billingReadOnlyRepository;
     }
-    public async Task<byte[]> Execute(RequestExcelJson request)
+    public async Task<byte[]> Execute(RequestReportJson request)
     {
         ValidateRequest.ValidateFilters(request);
         
@@ -54,7 +54,5 @@ public class GetReportExcelUseCase : IGetReportExcelUseCase
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
         return stream.ToArray();
-        // Generate Excel file from billingsToReport
-        throw new NotImplementedException();
     }
 }

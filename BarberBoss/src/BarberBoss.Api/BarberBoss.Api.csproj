@@ -17,4 +17,10 @@
     <ProjectReference Include="..\BarberBoss.Infrastructure\BarberBoss.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Assets\barber-boss-logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

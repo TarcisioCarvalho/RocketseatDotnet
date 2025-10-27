@@ -39,7 +39,7 @@ public class BillingValidator
             .ThisDateMustBeGreaterThan(request.EndDate, "Data de término", request.StartDate);
         return validationResult;
     }
-    public ValidationResult ValidateFilters(RequestExcelJson request)
+    public ValidationResult ValidateFilters(RequestReportJson request)
     {
         var validationResult = new ValidationResult();
         validationResult
