@@ -6,7 +6,7 @@ namespace CashFlow.Infrastructure.DataAccess.Repositories;
 internal class UserRepository : IUserReadOnlyRepository, IUserWriteOnlyRepository
 {
     private readonly CashFlowDbContext _dbContext;
-    
+
     public UserRepository(CashFlowDbContext dbContext)
     {
         _dbContext = dbContext;
@@ -20,5 +20,12 @@ internal class UserRepository : IUserReadOnlyRepository, IUserWriteOnlyRepositor
     public async Task<bool> ExistActiveUserWith(string email)
     {
         return await _dbContext.Users.AnyAsync(u => u.Email.Equals(email));
+    }
+
+    public async Task<User?> GetUserByEmail(string email)
+    {
+        return await _dbContext.Users
+             .AsNoTracking()
+             .FirstOrDefaultAsync(u => u.Email.Equals(email));
     }
 }
