@@ -93,18 +93,66 @@ CREATE TABLE billings (
     )
 );
 ALTER TABLE billings ALTER COLUMN updated_at DROP NOT NULL;
+
+-- CRIAÇÃO DA TABELA USERS
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(120) NOT NULL CHECK (CHAR_LENGTH(name) BETWEEN 2 AND 120),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Trigger para atualizar updated_at automaticamente na tabela users
+CREATE TRIGGER set_updated_at_users
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Índices para melhorar performance nas consultas de users
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_created_at ON users(created_at DESC);
+
+-- Comentários descritivos para tabela users
+COMMENT ON TABLE users IS 'Tabela de usuários do sistema';
+COMMENT ON COLUMN users.id IS 'GUID gerado automaticamente';
+COMMENT ON COLUMN users.name IS 'Nome do usuário (2-120 caracteres)';
+COMMENT ON COLUMN users.email IS 'Email único do usuário';
+COMMENT ON COLUMN users.password IS 'Senha criptografada do usuário';
+COMMENT ON COLUMN users.created_at IS 'Data/hora de criação do usuário';
+COMMENT ON COLUMN users.updated_at IS 'Data/hora da última atualização';
+
+-- ADICIONAR RELACIONAMENTO NA TABELA BILLINGS
+ALTER TABLE billings ADD COLUMN user_id UUID;
+
+-- Criar Foreign Key para relacionar billings com users
+ALTER TABLE billings
+    ADD CONSTRAINT fk_billings_user
+    FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+-- Criar índice para melhorar performance nas consultas por user_id
+CREATE INDEX idx_billings_user_id ON billings(user_id);
+
+-- Comentário descritivo para a nova coluna
+COMMENT ON COLUMN billings.user_id IS 'ID do usuário responsável pelo registro (FK para users)';
+
 SELECT * From billings;
- SELECT 
-     id, 
-     date, 
-     barber_name, 
-     client_name, 
-     service_name, 
-     amount, 
-     payment_method, 
-     status, 
-     notes, 
+ SELECT
+     id,
+     date,
+     barber_name,
+     client_name,
+     service_name,
+     amount,
+     payment_method,
+     status,
+     notes,
      created_at,
-     updated_at
+     updated_at,
+     user_id
  FROM billings
  WHERE id = 'e481c575-ef15-40d2-9af2-54da0ee878b5'
