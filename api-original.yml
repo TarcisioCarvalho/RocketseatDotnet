@@ -3,11 +3,21 @@ info:
   title: API ENERGISA
   description: |-
     **Authentication overview**
-
-    - **Billing endpoints**: require only the OAuth access token. Send it in the header as `Authorization: Bearer <access_token>`.
-    - **Partner Company authentication endpoint** (`/autenticacao/{version}/UsuarioEmpresaParceira`): requires the OAuth access token **and** the client's credentials (`clientId` and `password`) to obtain the **Partner Company Token**.
-    - **All other endpoints**: require **both** tokens — the OAuth access token **and** the Partner Company Token — to be provided with each request.
-  version: 1.0.0
+    - To access the API endpoints, you must first obtain an OAuth access token by calling the `/oauth/access-token` endpoint using the Client Credentials flow. This token must be included in the `access_token` header of subsequent requests.
+    - After obtaining the OAuth access token, you must authenticate your Partner Company by calling the `/autenticacao/{version}/UsuarioEmpresaParceira` endpoint. This will provide you with a Partner Company Token, which must be included in the `Authorization` header of subsequent requests.
+    - The `client_id` header must also be included in all requests to identify your application.
+    - The authentication process is required for all endpoints, except for the `/oauth/access-token` endpoint itself.
+    - The authentication flow is as follows:
+      1. Call `/oauth/access-token` with your `client_id` and `client_secret` to obtain the OAuth access token.
+      2. Call `/autenticacao/{version}/UsuarioEmpresaParceira` with the OAuth access token and `client_id` to obtain the Partner Company Token.
+      3. Include both tokens in the headers of all subsequent requests to other endpoints.
+    - **Header requirements**:
+      - `client_id`: Your application's client ID (required for all requests).
+      - `access_token`: The OAuth access token header obtained from `/oauth/access-token` (required for all requests except `/oauth/access-token`).
+      - `Authorization`: The Partner Company Token obtained from `/autenticacao/{version}/UsuarioEmpresaParceira`.
+    - **Authentication endpoint** (`/autenticacao/{version}/UsuarioEmpresaParceira`): requires the OAuth *access_token* and *client_id* headers **and** to obtain the **Partner Company Token**.
+    - POST/clientes/{version}/pre-payment/qrcode do not need the Partner Company Token, just the OAuth *access_token* and *client_id* headers.
+  version: 1.2.0
 tags:
   - name: Autenticação
   - name: Faturamento
@@ -20,10 +30,16 @@ paths:
       description: |-
         Endpoint para autenticação e obtenção do access token utilizando o fluxo Client Credentials do OAuth 2.0.
 
-        O token deve ser enviado no header Authorization das demais requisições como: `Bearer {access_token}`
+        O token deve ser enviado no header access_token das demais requisições como: `{access_token}`
       tags:
         - Autenticação
-      parameters: []
+      parameters:
+        - in: header
+          name: client_id
+          schema:
+            type: string
+          required: true
+
       requestBody:
         required: true
         content:
@@ -68,7 +84,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
               examples:
                 InvalidGrantType:
                   summary: Grant type inválido
@@ -84,7 +100,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
               examples:
                 InvalidCredentials:
                   summary: Credenciais inválidas
@@ -105,31 +121,29 @@ paths:
                       timestamp: "2025-10-06T14:30:00Z"
                       retryable: false
         "500":
-          $ref: '#/components/responses/InternalServerError'
+          $ref: "#/components/responses/InternalServerError"
       security:
         - BasicAuth: []
-  '/autenticacao/{version}/UsuarioEmpresaParceira':
+  "/autenticacao/{version}/UsuarioEmpresaParceira":
     post:
       summary: Realiza a autenticação de clientes externos da API
       deprecated: false
       tags:
         - Autenticação
       parameters:
-        - name: version
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/VersionPathParam"
+        - $ref: "#/components/parameters/AuthClientId"
+        - $ref: "#/components/parameters/AuthAccessToken"
       requestBody:
         description: Objeto contendo credenciais (token de acesso e senha de acesso)
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
+              $ref: "#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi"
           application/json-patch+json:
             schema:
-              $ref: '#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi'
+              $ref: "#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi"
       responses:
         "200":
           description: OK
@@ -139,42 +153,20 @@ paths:
           description: Erro de validação de parâmetros de entrada.
         "500":
           description: Ocorreu um erro inesperado.
-  /clientes/v1/pre-payment/qrcode:
+  /clientes/{version}/pre-payment/qrcode:
     post:
       summary: Request Pix QrCode for recharge payment
       deprecated: false
       description: |-
-        ### Clarify
-        > 1、*Can the input parameter requestedValue and the output parameter paymentValue be different? I understand that the vending system should use requestedValue as the basis for token generation, but if paymentValue is less than requestedValue, should an error be reported?
-        > 2、Does "cashbackValue" refer to the "Saldo Financeiro mês anterior" (Previous Month's Financial Balance) mentioned in RN65?
-        > If that's the case, we need to implement "Controle e exibição de Saldo e Opções de Recarga" (Control and display of Balance and Recharge Options). However, no parameters associated with this option have been found in the payment interface (i.e., the current interface).*
+        This endpoint allows the requester to obtain a Pix QRCode for making a recharge payment to a specific meter.
 
-        ### Answear
-        **1.** The input parameter ***requestedValue*** and the output parameter ***paymentValue*** may be different. This occurs, for example, when the customer has a cashback from the last billing. In this case, the cashback amount is deducted from ***requestedValue***, resulting in a lower ***paymentValue***.
-
-        Regarding the generation of Tokens, we understand that they must be linked to the amount that will actually be recharged in the customer's meter. This is because, if the customer has debts to be settled, ORCA must reserve 10% of ***requestedValue***, allocating it to the debt settlement. The resulting difference will be used for the recharge.
-
-        Therefore, it is important to highlight that ***requestedValue***, ***paymentValue***, and ***Recharge Value*** may be different, depending on the existence of cashback and/or a reserve for debts.
-
-        **Practical example:**
-        ***requestedValue*** = R$ 150.00
-        ***cashbackValue*** = R$ 10.00
-        ***paymentValue*** = ***requestedValue*** – ***cashbackValue*** = R$ 140.00
-        ***debtTx.amt*** = ***requestedValue*** × 0.1 = R$ 15.00
-        ***Recharge Value*** = ***requestedValue*** – ***debtTx.amt*** = R$ 135.00
-        ***Original Credit Amt*** = Recharge Value + rounding = R$ 135.00 + R$ 0.30 = R$ 135.30
-
-        **Question:** It remains to be defined whether the generated Tokens should be associated with:
-        - **Recharge Value** ;
-        - **Original Credit Amt** ; or
-        - **creditTx.amt** .
-
-        **2.** The output parameter ***cashbackValue*** is controlled by Energisa. This value originates from the last billing, in cases where the customer's bill amount was lower than the recharge amount. Thus, when ORCA requests the generation of the QRCode, Energisa will verify if cashback is available. If it exists, the amount will be deducted from ***requestedValue***.
-
-        The ***cashbackValue*** will be sent to ORCA so that this information can be displayed in the customer's statement, showing that they paid a lower amount because they had a discount related to the cashback.
       tags:
         - Faturamento
-      parameters: []
+      parameters:
+        - $ref: "#/components/parameters/VersionPathParam"
+        - $ref: "#/components/parameters/AuthClientId"
+        - $ref: "#/components/parameters/AuthAccessToken"
+
       requestBody:
         content:
           application/json:
@@ -188,7 +180,7 @@ paths:
               type: object
               properties:
                 companyId:
-                  $ref: '#/components/schemas/CompanyId'
+                  $ref: "#/components/schemas/CompanyId"
                   example: EMR
                 meterNumber:
                   type: string
@@ -250,34 +242,103 @@ paths:
                     description: cashbackValue is controlled by Energisa. This value originates from the last billing, in cases where the customer's bill amount was lower than the recharge amount. Thus, when ORCA requests the generation of the QRCode, Energisa will verify if cashback is available. If it exists, the amount will be deducted from requestedValue.
                     format: decimal
                     example: 10
-              headers: {}
         "400":
-          $ref: '#/components/responses/BadRequest'
+          $ref: "#/components/responses/BadRequest"
         "404":
-          $ref: '#/components/responses/NotFoundQRCode'
+          $ref: "#/components/responses/NotFoundQRCode"
         "401":
-          $ref: '#/components/responses/Unauthorized'
+          $ref: "#/components/responses/Unauthorized"
         "500":
-          $ref: '#/components/responses/InternalServerError'
-      security: []
-  /clientes/v1/pre-payment/notification/low-balance:
+          $ref: "#/components/responses/InternalServerError"
+  /clientes/{version}/pre-payment/{CompanyId}/payments/{RechargeId}/status:
+    post:
+      summary: Returns the payment status of a recharge
+      tags:
+        - Faturamento
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+        - name: RechargeId
+          in: path
+          required: true
+          description: Recharge ID
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/VersionPathParam"
+        - $ref: "#/components/parameters/AuthClientId"
+        - $ref: "#/components/parameters/AuthAccessToken"
+      description: ""
+      responses:
+        "200":
+          description: Status returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - PENDING
+                      - CONFIRMED
+                      - EXPIRED
+                      - UNKNOWN
+                  paymentDateTime:
+                    type: string
+                    format: date-time
+        "404":
+          description: Recharge not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: Error code identifier
+                        example: RECHARGE_NOT_FOUND
+                      message:
+                        type: string
+                        description: Human-readable error message
+                        example: Recarga não encontrada
+                      detail:
+                        type: string
+                        description: Detailed error description
+                        example: Recarga não encontrada
+                      timestamp:
+                        type: string
+                        format: date-time
+                        description: Error timestamp in ISO 8601 format
+                        example: "2025-10-06T14:30:00Z"
+                      retryable:
+                        type: boolean
+                        description: Indicates if the request can be retried
+                        example: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /clientes/{version}/pre-payment/notification/low-balance:
     post:
       summary: Notify the alerts related to Pre-Payment Customer Balance
       deprecated: false
       description: |-
-        ### Clarify
-        1、We intend to delete fields companyId, uc, and companyId, as they are unnecessary in the notifications and are not what users need to care about.
-        2、Added a new field timestamp.
+        This endpoint allows the vending system to notify Energisa about low-balance alerts for pre-payment customers. The alerts can be of different levels (level1, level2, level3) or indicate that the balance is exhausted.
 
-        ### Answer:
-        1、Company identifier. Required because each company has its own database, and this field allows the system to determine in which database the related meter is stored. It is assumed that the company code (companyId) is already registered in your systems and linked to each meter.
-        2 - Ok
+        Upon receiving a low-balance alert, Energisa may take actions such as sending SMS notifications to the customer or updating internal records.
       tags:
         - Atendimento
-      parameters: []
+      parameters:
+        - $ref: "#/components/parameters/VersionPathParam"
+        - $ref: "#/components/parameters/AuthClientId"
+        - $ref: "#/components/parameters/AuthAccessToken"
       requestBody:
         content:
-          aplication/json:
+          application/json:
             schema:
               required:
                 - companyId
@@ -288,7 +349,7 @@ paths:
               type: object
               properties:
                 companyId:
-                  $ref: '#/components/schemas/CompanyId'
+                  $ref: "#/components/schemas/CompanyId"
                   description: Company that owns the meter
                   example: EMR
                 meterNumber:
@@ -329,37 +390,38 @@ paths:
                     type: string
                     description: Correlation id registered in the notification (just for checking if necessary)
                     example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
-              headers: {}
         "400":
-          $ref: '#/components/responses/BadRequest'
+          $ref: "#/components/responses/BadRequest"
         "401":
-          $ref: '#/components/responses/Unauthorized'
+          $ref: "#/components/responses/Unauthorized"
         "404":
-          $ref: '#/components/responses/NotFound'
+          $ref: "#/components/responses/NotFound"
         "409":
-          $ref: '#/components/responses/Conflict'
+          $ref: "#/components/responses/Conflict"
         "504":
-          $ref: '#/components/responses/GatewayTimeout'
+          $ref: "#/components/responses/GatewayTimeout"
         "500":
-          $ref: '#/components/responses/InternalServerError'
-      security: []
-  /clientes/v1/pre-payment/session/{uuid}:
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - BearerAuth: []
+  /clientes/{version}/pre-payment/session/{uuid}:
     get:
       summary: Validade unique session key and return linked customer data
       deprecated: false
       description: |-
-        ### Clarify
-        Could you explain this interface, we want to know how to use it and why use it
+        This endpoint validates a unique temporary session key (UUID) and returns the associated customer data if the session is valid.
 
-        This endpoint will be used in the integration of the web page that your team will develop. The basic idea is:
-        - The customer will access a web page through a URL such as: www.paginawebhexing.com/uuid=xxx...
-        - When the page is opened with this UUID in the URL, your system should call this endpoint, passing the same UUID.
-        - The endpoint validates the UUID and returns the necessary data for building the page.
+        The UUID is typically generated during the initial interaction with the vending system and is used to securely link the customer's session to their data.
 
-        The exact structure and set of returned data are still being defined. The purpose of this endpoint is to ensure that the UUID is valid and to provide information needed to render the page correctly. A more complete specification of the integration flow (including response fields and data mapping) will be provided later.
+        If the UUID is valid and corresponds to an active session, the endpoint will return relevant customer information such as meter number, name, address, and other details necessary for further interactions.
+
+        If the UUID is invalid, expired, or does not correspond to any active session, appropriate error responses will be returned.
       tags:
         - Atendimento
       parameters:
+        - $ref: "#/components/parameters/VersionPathParam"
+        - $ref: "#/components/parameters/AuthClientId"
+        - $ref: "#/components/parameters/AuthAccessToken"
         - name: uuid
           in: path
           description: Unique temporary session key
@@ -406,7 +468,7 @@ paths:
                         type: number
                         example: 1
                       originChannel:
-                        $ref: '#/components/schemas/OriginChannelType'
+                        $ref: "#/components/schemas/OriginChannelType"
                         description: Used to open a protocol
                         example: AD
                       InteractionType:
@@ -417,28 +479,30 @@ paths:
                         description: Used to open a protocol
                         type: number
                         example: 150
-              headers: {}
         "400":
-          $ref: '#/components/responses/BadRequest'
+          $ref: "#/components/responses/BadRequest"
         "401":
-          $ref: '#/components/responses/Unauthorized'
+          $ref: "#/components/responses/Unauthorized"
         "404":
-          $ref: '#/components/responses/NotFound'
+          $ref: "#/components/responses/NotFound"
         "500":
-          $ref: '#/components/responses/InternalServerError'
-      security: []
-  /clientes/v1/pre-payment/notification/recharge-status:
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - BearerAuth: []
+  /clientes/{version}/pre-payment/notification/recharge-status:
     post:
       summary: Notify the result of the recharge issuance to the meter
       deprecated: false
       description: |-
         After the vending system issues the token to the meter, it waits for the meter's communication result. Once vending receives the result, it returns it to Energisa.
 
-        ### Clarify
-        Energisa Question - We would like to know, on average, how long it takes to receive this notification after the first payment confirmation.
+        This endpoint allows the vending system to notify Energisa about the result of a recharge issuance to a specific meter. The notification includes details such as whether the recharge was successful, the amount of energy (in kWh) credited, and any tokens issued.
       tags:
         - Atendimento
-      parameters: []
+      parameters:
+        - $ref: "#/components/parameters/VersionPathParam"
+        - $ref: "#/components/parameters/AuthClientId"
+        - $ref: "#/components/parameters/AuthAccessToken"
       requestBody:
         content:
           application/json:
@@ -488,33 +552,34 @@ paths:
                     type: string
                     description: Correlation id registered in the notification (just for checking if necessary)
                     example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
-              headers: {}
         "400":
-          $ref: '#/components/responses/BadRequest'
+          $ref: "#/components/responses/BadRequest"
         "401":
-          $ref: '#/components/responses/Unauthorized'
+          $ref: "#/components/responses/Unauthorized"
         "404":
-          $ref: '#/components/responses/NotFound'
+          $ref: "#/components/responses/NotFound"
         "409":
-          $ref: '#/components/responses/Conflict'
+          $ref: "#/components/responses/Conflict"
         "504":
-          $ref: '#/components/responses/GatewayTimeout'
+          $ref: "#/components/responses/GatewayTimeout"
         "500":
-          $ref: '#/components/responses/InternalServerError'
-      security: []
-  '/clientes/{version}/Atendimento/{CodigoEmpresaWeb}/{Cdc}/{DigitoVerificador}/{TipoInteracao}/{CodigoAcao}':
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - BearerAuth: []
+  "/clientes/{version}/Atendimento/{CodigoEmpresaWeb}/{Cdc}/{DigitoVerificador}/{TipoInteracao}/{CodigoAcao}":
     get:
-      summary: Gera protocolo de atendimento ao cliente
+      summary: Generate customer service protocol
       deprecated: false
-      description: Gera protocolo de atendimento ao cliente.
+      description: Generate a customer service protocol.
+        This endpoint allows the creation of a customer service protocol based on the provided parameters, including company code, customer identifier (CDC), interaction type, and action code.
+      security:
+        - BearerAuth: []
       tags:
         - Atendimento
       parameters:
-        - name: version
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/VersionPathParam"
+        - $ref: "#/components/parameters/AuthClientId"
+        - $ref: "#/components/parameters/AuthAccessToken"
         - name: CodigoEmpresaWeb
           in: path
           required: true
@@ -556,7 +621,7 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/RetornoProtocoloResultadoObjeto'
+                $ref: "#/components/schemas/RetornoProtocoloResultadoObjeto"
         "400":
           description: "Requisição inválida."
         "401":
@@ -640,7 +705,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             InvalidParameter:
               summary: Missing or invalid parameter
@@ -728,7 +793,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             MissingAuth:
               summary: Missing authentication credentials
@@ -771,7 +836,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             MeterNotRegistered:
               summary: Meter not registered in Energisa database
@@ -805,7 +870,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             MeterNotRegistered:
               summary: Meter not registered in Energisa database
@@ -857,7 +922,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             DuplicateNotification:
               summary: Duplicate notification (low-balance endpoint)
@@ -891,7 +956,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             UuidExpired:
               summary: UUID expired (session endpoint)
@@ -907,7 +972,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             NotificationProcessingTimeout:
               summary: Timeout processing notification
@@ -950,7 +1015,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             InternalError:
               summary: Generic internal server error
@@ -962,6 +1027,11 @@ components:
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: true
   securitySchemes:
+    BearerAuth: # Arbitrary name for your security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # Optional: for documentation purposes, indicates JWT format
+      description: "Enter your JWT Bearer token in the format: Bearer <token>"
     BasicAuth:
       type: http
       scheme: basic
@@ -969,6 +1039,38 @@ components:
         Autenticação Basic usando client_id e client_secret.
 
         O header Authorization deve conter: Basic base64(client_id:client_secret)
+  parameters:
+    AuthClientId:
+      name: client_id
+      in: header
+      description: Client ID for API authentication
+      required: true
+      schema:
+        type: string
+    AuthAccessToken:
+      name: access_token
+      in: header
+      description: Access token for API authentication (from oauth/access-token)
+      required: true
+      schema:
+        type: string
+    VersionPathParam:
+      name: version
+      in: path
+      description: API version
+      required: true
+      example: "2.0"
+      schema:
+        type: string
+    CompanyId:
+      name: companyId
+      in: path
+      required: true
+      description: Energisa Company Identifier
+      schema:
+        type: string
+        enum: [EMR, ESE, EPB, ETO, EMT, EMS, ESS, EAC, ERO]
+
 servers:
   - url: https://hml-api.energisa.io
     description: Stagging Environment
