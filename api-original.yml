@@ -2,21 +2,28 @@ openapi: 3.0.1
 info:
   title: API ENERGISA
   description: |-
-    **Authentication overview**
-    - To access the API endpoints, you must first obtain an OAuth access token by calling the `/oauth/access-token` endpoint using the Client Credentials flow. This token must be included in the `access_token` header of subsequent requests.
-    - After obtaining the OAuth access token, you must authenticate your Partner Company by calling the `/autenticacao/{version}/UsuarioEmpresaParceira` endpoint. This will provide you with a Partner Company Token, which must be included in the `Authorization` header of subsequent requests.
-    - The `client_id` header must also be included in all requests to identify your application.
-    - The authentication process is required for all endpoints, except for the `/oauth/access-token` endpoint itself.
-    - The authentication flow is as follows:
-      1. Call `/oauth/access-token` with your `client_id` and `client_secret` to obtain the OAuth access token.
-      2. Call `/autenticacao/{version}/UsuarioEmpresaParceira` with the OAuth access token and `client_id` to obtain the Partner Company Token.
-      3. Include both tokens in the headers of all subsequent requests to other endpoints.
-    - **Header requirements**:
-      - `client_id`: Your application's client ID (required for all requests).
-      - `access_token`: The OAuth access token header obtained from `/oauth/access-token` (required for all requests except `/oauth/access-token`).
-      - `Authorization`: The Partner Company Token obtained from `/autenticacao/{version}/UsuarioEmpresaParceira`.
-    - **Authentication endpoint** (`/autenticacao/{version}/UsuarioEmpresaParceira`): requires the OAuth *access_token* and *client_id* headers **and** to obtain the **Partner Company Token**.
-    - POST/clientes/{version}/pre-payment/qrcode do not need the Partner Company Token, just the OAuth *access_token* and *client_id* headers.
+    **Authentication overview (two layers)**
+
+    1) **Gateway (Sensedia) – OAuth Client Credentials**
+       - Faça `POST /oauth/access-token` enviando **apenas** os headers:
+         - `Authorization: Basic base64(client_id:client_secret)`
+         - `Content-Type: application/x-www-form-urlencoded`
+       - No corpo, envie `grant_type=client_credentials` (valor fixo).
+       - O `access_token` retornado deve ser incluído no header `access_token` de **todas** as chamadas seguintes (inclusive no endpoint de Empresa Parceira).
+
+    2) **Aplicação – Autenticação da Empresa Parceira**
+       - Após obter o OAuth access token, chame `/autenticacao/{version}/UsuarioEmpresaParceira` enviando:
+         - Headers (camada Sensedia): `client_id` e `access_token` (obtido em `/oauth/access-token`).
+         - Body (credenciais do parceiro): `tokenAcessoApi` (usuário) e `senhaAcessoApi` (senha).
+       - A resposta 200 retorna o **Partner Company Token** em `objeto.accessToken`, além de `refreshToken`, `prazoExpiracao` e `tipoAutenticacao`.
+       - O Partner Company Token deve ser enviado nos endpoints que exigem autenticação de parceiro no header:
+         - `Authorization: Bearer <PartnerCompanyToken>`
+
+    - O header `client_id` é obrigatório em todas as chamadas (exceto `/oauth/access-token`), para identificar a aplicação integrada.
+    - O header `access_token` (OAuth token) é obrigatório em todas as chamadas, exceto no próprio `/oauth/access-token`.
+    - O Partner Company Token é obrigatório apenas nos endpoints que fazem autenticação de parceiro.
+    - O endpoints `POST /clientes/{version}/pre-payment/qrcode` e `POST /clientes/{version}/pre-payment/{CompanyId}/payments/{RechargeId}/status`   **não** exigem o Partner Company Token — apenas os headers `client_id` e `access_token`.
+
   version: 1.2.0
 tags:
   - name: Autenticação
@@ -28,17 +35,18 @@ paths:
       summary: Obter token de acesso OAuth
       deprecated: false
       description: |-
-        Endpoint para autenticação e obtenção do access token utilizando o fluxo Client Credentials do OAuth 2.0.
+        Endpoint para autenticação e obtenção do access token utilizando o fluxo **OAuth 2.0 Client Credentials**.
 
-        O token deve ser enviado no header access_token das demais requisições como: `{access_token}`
+        **Headers obrigatórios:**
+        - `Authorization: Basic base64(client_id:client_secret)`
+        - `Content-Type: application/x-www-form-urlencoded`
+
+        **Body (x-www-form-urlencoded):**
+        - `grant_type=client_credentials` (valor fixo)
+
+        O token deve ser enviado no header `access_token` das demais requisições como: `{access_token}`.
       tags:
         - Autenticação
-      parameters:
-        - in: header
-          name: client_id
-          schema:
-            type: string
-          required: true
 
       requestBody:
         required: true
@@ -108,7 +116,7 @@ paths:
                     error:
                       code: INVALID_CREDENTIALS
                       message: Credenciais inválidas
-                      detail: O client_id ou client_secret fornecidos no header Authorization são inválidos
+                      detail: client_id ou client_secret fornecidos no header Authorization (Basic) são inválidos
                       timestamp: "2025-10-06T14:30:00Z"
                       retryable: false
                 MissingAuthorization:
@@ -117,19 +125,28 @@ paths:
                     error:
                       code: MISSING_AUTHORIZATION
                       message: Header Authorization ausente
-                      detail: O header Authorization com as credenciais base64(client_id:client_secret) é obrigatório
+                      detail: O header Authorization com as credenciais Basic base64(client_id:client_secret) é obrigatório
                       timestamp: "2025-10-06T14:30:00Z"
                       retryable: false
         "500":
           $ref: "#/components/responses/InternalServerError"
       security:
         - BasicAuth: []
+
   "/autenticacao/{version}/UsuarioEmpresaParceira":
     post:
       summary: Realiza a autenticação de clientes externos da API
       deprecated: false
       tags:
         - Autenticação
+      description: |-
+        Autentica a **Empresa Parceira** na aplicação.
+
+        **Requisitos:**
+        - Headers (camada Sensedia): `client_id` e `access_token` (obtido em `/oauth/access-token`).
+        - Body (credenciais do parceiro): `tokenAcessoApi` (usuário) e `senhaAcessoApi` (senha).
+
+        **Retorno 200:** contém o Partner Company Token em `objeto.accessToken`, além de `refreshToken`, `prazoExpiracao` e `tipoAutenticacao`.
       parameters:
         - $ref: "#/components/parameters/VersionPathParam"
         - $ref: "#/components/parameters/AuthClientId"
@@ -141,32 +158,69 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi"
+            examples:
+              exemploValido:
+                summary: Exemplo de body válido
+                value:
+                  tokenAcessoApi: "parceiro.hexing"
+                  senhaAcessoApi: "S3nh@Segura!"
           application/json-patch+json:
             schema:
               $ref: "#/components/schemas/CredenciaisUsuarioEmpresaParceiraApi"
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerCompanyAuthResponse"
+              examples:
+                sucesso:
+                  summary: Exemplo de retorno com Partner Company Token
+                  value:
+                    objeto:
+                      accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      refreshToken: "18e5732fd15...c40d82"
+                      prazoExpiracao: 1762903696
+                      tipoAutenticacao: "Empresa Parceira"
+                    codigo: "OK"
+                    mensagem: "Acesso autorizado."
+                    categoria: "OK"
         "400":
           description: Requisição inválida.
+        "403":
+          description: Forbidden (credenciais do parceiro inválidas)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                usuarioInexistente:
+                  summary: Usuário inexistente
+                  value:
+                    error:
+                      code: "FORBIDDEN"
+                      message: "Usuário inexistente."
+                      detail: "As credenciais tokenAcessoApi/senhaAcessoApi não foram reconhecidas."
+                      timestamp: "2025-10-06T14:30:00Z"
+                      retryable: false
         "412":
           description: Erro de validação de parâmetros de entrada.
         "500":
           description: Ocorreu um erro inesperado.
+
   /clientes/{version}/pre-payment/qrcode:
     post:
       summary: Request Pix QrCode for recharge payment
       deprecated: false
       description: |-
         This endpoint allows the requester to obtain a Pix QRCode for making a recharge payment to a specific meter.
-
       tags:
         - Faturamento
       parameters:
         - $ref: "#/components/parameters/VersionPathParam"
         - $ref: "#/components/parameters/AuthClientId"
         - $ref: "#/components/parameters/AuthAccessToken"
-
       requestBody:
         content:
           application/json:
@@ -250,6 +304,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
   /clientes/{version}/pre-payment/{CompanyId}/payments/{RechargeId}/status:
     post:
       summary: Returns the payment status of a recharge
@@ -404,6 +459,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       security:
         - BearerAuth: []
+
   /clientes/{version}/pre-payment/session/{uuid}:
     get:
       summary: Validade unique session key and return linked customer data
@@ -416,6 +472,11 @@ paths:
         If the UUID is valid and corresponds to an active session, the endpoint will return relevant customer information such as meter number, name, address, and other details necessary for further interactions.
 
         If the UUID is invalid, expired, or does not correspond to any active session, appropriate error responses will be returned.
+
+        O campo `session.originChannel` informa o canal de origem:
+        - AD = Agência Digital (Web)
+        - EON = Aplicativo EON (Mobile)
+        - SIATT = Canais Convencionais
       tags:
         - Atendimento
       parameters:
@@ -489,6 +550,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       security:
         - BearerAuth: []
+
   /clientes/{version}/pre-payment/notification/recharge-status:
     post:
       summary: Notify the result of the recharge issuance to the meter
@@ -566,11 +628,13 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       security:
         - BearerAuth: []
+
   "/clientes/{version}/Atendimento/{CodigoEmpresaWeb}/{Cdc}/{DigitoVerificador}/{TipoInteracao}/{CodigoAcao}":
     get:
       summary: Generate customer service protocol
       deprecated: false
-      description: Generate a customer service protocol.
+      description: |-
+        Generate a customer service protocol.
         This endpoint allows the creation of a customer service protocol based on the provided parameters, including company code, customer identifier (CDC), interaction type, and action code.
       security:
         - BearerAuth: []
@@ -634,12 +698,41 @@ paths:
           description: "ERRO: Não foi possível gerar a interação."
         "500":
           description: "Ocorreu um erro inesperado."
+
 components:
   schemas:
     CompanyId:
       type: string
       description: Energisa Company Identifier
       enum: [EMR, ESE, EPB, ETO, EMT, EMS, ESS, EAC, ERO]
+    PartnerCompanyAuthResponse:
+      type: object
+      properties:
+        objeto:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: "Partner Company Token (usar em Authorization: Bearer <token>)"
+            refreshToken:
+              type: string
+              description: Token de renovação do Partner Company Token
+            prazoExpiracao:
+              type: integer
+              format: int64
+              description: Epoch seconds de expiração do Partner Company Token
+            tipoAutenticacao:
+              type: string
+              description: 'Tipo de autenticação retornada (ex.: "Empresa Parceira")'
+        codigo:
+          type: string
+          example: "OK"
+        mensagem:
+          type: string
+          example: "Acesso autorizado."
+        categoria:
+          type: string
+          example: "OK"
     OriginChannelType:
       type: string
       description: Channel from which the page was accessed.
@@ -686,7 +779,7 @@ components:
           example: "OK"
         mensagem:
           type: string
-          example: "Interação registrada com sucesso."
+          example: "Interação registrado com sucesso."
         categoria:
           type: string
           example: "OK"
@@ -699,6 +792,7 @@ components:
         senhaAcessoApi:
           type: string
           nullable: true
+
   responses:
     BadRequest:
       description: Bad Request. The request could not be understood or was missing required parameters.
@@ -1026,11 +1120,12 @@ components:
                   detail: Ocorreu um erro inesperado ao processar a requisição
                   timestamp: "2025-10-06T14:30:00Z"
                   retryable: true
+
   securitySchemes:
-    BearerAuth: # Arbitrary name for your security scheme
+    BearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT # Optional: for documentation purposes, indicates JWT format
+      bearerFormat: JWT
       description: "Enter your JWT Bearer token in the format: Bearer <token>"
     BasicAuth:
       type: http
@@ -1039,6 +1134,7 @@ components:
         Autenticação Basic usando client_id e client_secret.
 
         O header Authorization deve conter: Basic base64(client_id:client_secret)
+
   parameters:
     AuthClientId:
       name: client_id
