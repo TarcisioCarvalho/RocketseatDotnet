@@ -12,6 +12,8 @@ public class HttpContextTokenValue : ITokenProvider
 
     public string TokenOnRequest()
     {
-        return _httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString().Replace("Bearer ", "").Trim()!;
+        var token = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();
+        var tokenWithoutBearer = token?.Replace("Bearer ", "").Trim();
+        return tokenWithoutBearer!;
     }
 }

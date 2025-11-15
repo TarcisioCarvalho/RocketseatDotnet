@@ -20,7 +20,7 @@ internal class JwtTokenGenerator : IAccessTokenGenerator
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Name, user.Name),
-            new Claim(JwtRegisteredClaimNames.Sid, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Sid, user.UserIndetifier.ToString()),
         };
         var tokenDescriptor = new SecurityTokenDescriptor
         {
