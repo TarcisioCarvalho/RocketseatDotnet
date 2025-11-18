@@ -1,4 +1,6 @@
-﻿using CashFlow.Infrastructure.DataAccess;
+﻿using CashFlow.Domain.Security.Cryptography;
+using CashFlow.Domain.Security.Tokens;
+using CashFlow.Infrastructure.DataAccess;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +20,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     config.UseInMemoryDatabase("InMemoryDbForTesting");
                     config.UseInternalServiceProvider(provider);
                 });
+                var scope = services.BuildServiceProvider().CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<CashFlowDbContext>();
+                var passwordEncripter = scope.ServiceProvider.GetRequiredService<IPasswordEncripter>();
+                var tokenGenerator = scope.ServiceProvider.GetRequiredService<IAccessTokenGenerator>();
+
             });
+        
     }
 }
