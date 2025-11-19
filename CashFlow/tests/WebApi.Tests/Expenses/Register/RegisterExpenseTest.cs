@@ -24,4 +24,12 @@ public class RegisterExpenseTest : IClassFixture<CustomWebApplicationFactory>
         var result = await JsonDocument.ParseAsync(body);
         Assert.Equal(request.Title, result.RootElement.GetProperty("title").GetString());
     }
+
+    public async Task Error_Title_Empty()
+    {
+        var request = RequestRegisterExpenseJsonBuilder.Build();
+        request.Title = string.Empty;
+        var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
