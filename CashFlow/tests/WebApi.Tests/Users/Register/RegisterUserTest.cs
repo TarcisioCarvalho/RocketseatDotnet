@@ -1,5 +1,5 @@
 ﻿using CommonTestUtilities.Requests;
-using Microsoft.AspNetCore.Mvc.Testing;
+using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -19,12 +19,27 @@ public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
     {
         var request = RequestRegisterUserJsonBuilder.Build();
         var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
         var body = await response.Content.ReadAsStreamAsync();
         var result = await JsonDocument.ParseAsync(body);
-        Assert.Equal(request.Name, result.RootElement.GetProperty("name").GetString());
-        Assert.NotNull(result.RootElement.GetProperty("token").GetString());
-        Assert.NotEmpty(result.RootElement.GetProperty("token").GetString());
-        //response.EnsureSuccessStatusCode();
+
+        result.RootElement.GetProperty("name").GetString().Should().Be(request.Name);
+        result.RootElement.GetProperty("token").GetString().Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task Error_Name_Empty()
+    {
+        var request = RequestRegisterUserJsonBuilder.Build();
+        request.Name = string.Empty;
+        var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await response.Content.ReadAsStreamAsync();
+        var result = await JsonDocument.ParseAsync(body);
+
+        var errors = result.RootElement.GetProperty("errorMessages").EnumerateArray();
+        errors.Should().HaveCount(1).And.Contain(error => error.GetString()!.Equals("Name is required."));
     }
 }
