@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Globalization;
+using WebApi.Tests.InlineData;
 
 namespace WebApi.Tests.Users.Register;
 public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
@@ -31,12 +32,13 @@ public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
         result.RootElement.GetProperty("token").GetString().Should().NotBeNullOrEmpty();
     }
 
-    [Fact]
-    public async Task Error_Name_Empty()
+    [Theory]
+    [ClassData(typeof(CultureInlineDataTest))]
+    public async Task Error_Name_Empty(string cultureInfo)
     {
         var request = RequestRegisterUserJsonBuilder.Build();
         request.Name = string.Empty;
-        _httpClient.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue("pt-BR"));
+        _httpClient.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue(cultureInfo));
         var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -44,7 +46,7 @@ public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
         var result = await JsonDocument.ParseAsync(body);
 
         var errors = result.RootElement.GetProperty("errorMessages").EnumerateArray();
-        var expectedMessage = ResourceErrorsMessages.ResourceManager.GetString("NAME_REQUIRED", new CultureInfo("pt-BR"));
+        var expectedMessage = ResourceErrorsMessages.ResourceManager.GetString("NAME_REQUIRED", new CultureInfo(cultureInfo));
         errors.Should().HaveCount(1).And.Contain(error => error.GetString()!.Equals(expectedMessage));
     }
 }

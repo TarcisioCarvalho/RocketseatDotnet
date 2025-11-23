@@ -129,6 +129,12 @@
   <data name="EXPENSES_CANNOT_FOR_THE_FUTURE" xml:space="preserve">
     <value>A data escolhida não pode ser no futuro.</value>
   </data>
+  <data name="INVALID_LOGIN" xml:space="preserve">
+    <value>Passe secreti ou correio virtual é invalido.</value>
+  </data>
+  <data name="NAME_REQUIRED" xml:space="preserve">
+    <value>Ora Pois o nome tem que ser dado.</value>
+  </data>
   <data name="PAYMENT_TYPE_INVALID" xml:space="preserve">
     <value>Por favor, selecione um método de pagamento válido.</value>
   </data>

@@ -97,6 +97,15 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Login or Password is Invalid..
+        /// </summary>
+        public static string INVALID_LOGIN {
+            get {
+                return ResourceManager.GetString("INVALID_LOGIN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name is required..
         /// </summary>
         public static string NAME_REQUIRED {
