@@ -97,6 +97,15 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name is required..
+        /// </summary>
+        public static string NAME_REQUIRED {
+            get {
+                return ResourceManager.GetString("NAME_REQUIRED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type de paiement invalide..
         /// </summary>
         public static string PAYMENT_TYPE_INVALID {
@@ -115,7 +124,7 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Le titre est requis..
+        ///   Looks up a localized string similar to The Title is Required..
         /// </summary>
         public static string TITLE_REQUIRED {
             get {

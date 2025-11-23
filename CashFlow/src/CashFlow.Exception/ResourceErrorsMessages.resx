@@ -129,6 +129,9 @@
   <data name="EXPENSE_NOT_FOUND" xml:space="preserve">
     <value>expense not found</value>
   </data>
+  <data name="NAME_REQUIRED" xml:space="preserve">
+    <value>The name is required.</value>
+  </data>
   <data name="PAYMENT_TYPE_INVALID" xml:space="preserve">
     <value>Type de paiement invalide.</value>
   </data>
@@ -136,7 +139,7 @@
     <value>Le titre ne doit pas dépasser 100 caractères.</value>
   </data>
   <data name="TITLE_REQUIRED" xml:space="preserve">
-    <value>Le titre est requis.</value>
+    <value>The Title is Required.</value>
   </data>
   <data name="UNKNOW_ERROR" xml:space="preserve">
     <value>erreur inconnue.</value>

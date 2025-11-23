@@ -1,8 +1,11 @@
-﻿using CommonTestUtilities.Requests;
+﻿using CashFlow.Exception;
+using CommonTestUtilities.Requests;
 using FluentAssertions;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Globalization;
 
 namespace WebApi.Tests.Users.Register;
 public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
@@ -33,6 +36,7 @@ public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
     {
         var request = RequestRegisterUserJsonBuilder.Build();
         request.Name = string.Empty;
+        _httpClient.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue("pt-BR"));
         var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -40,6 +44,7 @@ public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
         var result = await JsonDocument.ParseAsync(body);
 
         var errors = result.RootElement.GetProperty("errorMessages").EnumerateArray();
-        errors.Should().HaveCount(1).And.Contain(error => error.GetString()!.Equals("Name is required."));
+        var expectedMessage = ResourceErrorsMessages.ResourceManager.GetString("NAME_REQUIRED", new CultureInfo("pt-BR"));
+        errors.Should().HaveCount(1).And.Contain(error => error.GetString()!.Equals(expectedMessage));
     }
 }
