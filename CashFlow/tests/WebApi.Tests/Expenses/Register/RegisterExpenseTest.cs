@@ -1,5 +1,6 @@
 ﻿using CommonTestUtilities.Requests;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -8,15 +9,18 @@ public class RegisterExpenseTest : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _httpClient;
     private const string METHOD_URL = "api/Expense";
+    private string _token = string.Empty;
     public RegisterExpenseTest(CustomWebApplicationFactory factory)
     {
         _httpClient = factory.CreateClient();
+        _token = factory.GetToken();
     }
 
     [Fact]
     public async Task Success()
     {
         var request = RequestRegisterExpenseJsonBuilder.Build();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
         var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

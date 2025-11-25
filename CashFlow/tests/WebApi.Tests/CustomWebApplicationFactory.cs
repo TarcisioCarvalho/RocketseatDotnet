@@ -11,7 +11,8 @@ namespace WebApi.Tests;
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     private CashFlow.Domain.Entities.User _user = null!;
-    private string _password = null!;
+    private string _password = string.Empty;
+    private string _token = string.Empty;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Test")
@@ -28,7 +29,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 var passwordEncripter = scope.ServiceProvider.GetRequiredService<IPasswordEncripter>();
                 var tokenGenerator = scope.ServiceProvider.GetRequiredService<IAccessTokenGenerator>();
                 StartDatabase(dbContext, passwordEncripter);
-
+                _token = tokenGenerator.Generate(_user);
             });
         
     }
@@ -36,6 +37,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public string GetEmail() => _user.Email;
     public string GetName() => _user.Name;
     public string GetPassword() => _password;
+    public string GetToken() => _token;
 
     private void StartDatabase(CashFlowDbContext dbContext, IPasswordEncripter passwordEncripter)
     {
