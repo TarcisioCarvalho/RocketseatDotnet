@@ -1,5 +1,6 @@
 ﻿using CashFlow.Application.UseCases.Expenses.Register;
 using CashFlow.Domain.Entities;
+using CashFlow.Exception;
 using CashFlow.Exception.ExceptionBase;
 using CommonTestUtilities.Entities;
 using CommonTestUtilities.LoggedUser;
@@ -29,11 +30,10 @@ public class RegisterExpenseUseCaseTest
         request.Title = string.Empty;
         var useCase = CreateUseCase(loggedUser);
         Func<Task> action = async () => await useCase.Execute(request);
-       // var exception = await Assert.ThrowsAsync<ErrorOnValidationException>(() => action());
-        var result = await action.Should().ThrowAsync<ErrorOnValidationException>();
-        result.Where(ex => ex.GetErrors().Count == 1 && ex.GetErrors().Contains("Title is required."));
-      //  Assert.Single(exception.GetErrors());
-       // Assert.Equal("Title is required.", exception.GetErrors().First());
+        var exception = await Assert.ThrowsAsync<ErrorOnValidationException>(() => action());
+      
+        Assert.Single(exception.GetErrors());
+        Assert.Equal(ResourceErrorsMessages.TITLE_REQUIRED, exception.GetErrors().First());
     }
 
     private IRegisterExpenseUseCase CreateUseCase(User user)

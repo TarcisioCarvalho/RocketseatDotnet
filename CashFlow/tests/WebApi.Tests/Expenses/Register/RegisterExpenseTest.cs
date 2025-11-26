@@ -1,4 +1,6 @@
-﻿using CommonTestUtilities.Requests;
+﻿using CashFlow.Exception;
+using CommonTestUtilities.Requests;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -45,6 +47,8 @@ public class RegisterExpenseTest : IClassFixture<CustomWebApplicationFactory>
         var result = await JsonDocument.ParseAsync(body);
 
         var errors = result.RootElement.GetProperty("errorMessages").EnumerateArray();
-
+        Assert.Single(errors);
+        var expectedMessage = ResourceErrorsMessages.ResourceManager.GetString("TITLE_REQUIRED", new CultureInfo(cultureInfo));
+        Assert.Contains(errors, error => error.GetString()!.Equals(expectedMessage));
     }
 }
