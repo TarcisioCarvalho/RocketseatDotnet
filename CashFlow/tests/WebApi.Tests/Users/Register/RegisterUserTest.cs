@@ -9,20 +9,18 @@ using System.Globalization;
 using WebApi.Tests.InlineData;
 
 namespace WebApi.Tests.Users.Register;
-public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
+public class RegisterUserTest : CashFlowClassFixture
 {
-    private readonly HttpClient _httpClient;
-    private const string METHOD_URL = "api/User";
 
-    public RegisterUserTest(CustomWebApplicationFactory factory)
-    {
-        _httpClient = factory.CreateClient();
-    }
+    private const string requestUri = "api/User";
+
+    public RegisterUserTest(CustomWebApplicationFactory factory) : base(factory){}
+
     [Fact]
     public async Task Success()
     {
         var request = RequestRegisterUserJsonBuilder.Build();
-        var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
+        var response = await DoPost(requestUri:requestUri,request);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.Content.ReadAsStreamAsync();
@@ -34,19 +32,19 @@ public class RegisterUserTest : IClassFixture<CustomWebApplicationFactory>
 
     [Theory]
     [ClassData(typeof(CultureInlineDataTest))]
-    public async Task Error_Name_Empty(string cultureInfo)
+    public async Task Error_Name_Empty(string culture)
     {
         var request = RequestRegisterUserJsonBuilder.Build();
         request.Name = string.Empty;
-        _httpClient.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue(cultureInfo));
-        var response = await _httpClient.PostAsJsonAsync(METHOD_URL, request);
+
+        var response = await DoPost(requestUri:requestUri,request,culture:culture);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         var body = await response.Content.ReadAsStreamAsync();
         var result = await JsonDocument.ParseAsync(body);
 
         var errors = result.RootElement.GetProperty("errorMessages").EnumerateArray();
-        var expectedMessage = ResourceErrorsMessages.ResourceManager.GetString("NAME_REQUIRED", new CultureInfo(cultureInfo));
+        var expectedMessage = ResourceErrorsMessages.ResourceManager.GetString("NAME_REQUIRED", new CultureInfo(culture));
         errors.Should().HaveCount(1).And.Contain(error => error.GetString()!.Equals(expectedMessage));
     }
 }
