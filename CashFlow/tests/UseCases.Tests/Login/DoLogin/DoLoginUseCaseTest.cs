@@ -1,6 +1,7 @@
 ﻿using CashFlow.Application.UseCases.Users.Login;
 using CashFlow.Communication.Requests;
 using CashFlow.Domain.Entities;
+using CashFlow.Exception;
 using CashFlow.Exception.ExceptionsBase;
 using CommonTestUtilities.Entities;
 using CommonTestUtilities.Repositories;
@@ -36,7 +37,7 @@ public class DoLoginUseCaseTest
         Func<Task> action = async () => await loginUseCase.Execute(loginRequest);
         var exception = await Assert.ThrowsAsync<InvalidLoginException>(async () => await action());
         Assert.Single(exception.GetErrors());
-        Assert.Equal("Email or password is invalid.", exception.GetErrors().First());
+        Assert.Equal(ResourceErrorsMessages.INVALID_LOGIN, exception.GetErrors().First());
     }
 
     [Fact]
@@ -48,7 +49,7 @@ public class DoLoginUseCaseTest
         Func<Task> action = async () => await loginUseCase.Execute(loginRequest);
         var exception = await Assert.ThrowsAsync<InvalidLoginException>(async () => await action());
         Assert.Single(exception.GetErrors());
-        Assert.Equal("Email or password is invalid.", exception.GetErrors().First());
+        Assert.Equal(ResourceErrorsMessages.INVALID_LOGIN, exception.GetErrors().First());
     }
 
     private DoLoginUseCase CreateUseCase(User user,string? password = null)

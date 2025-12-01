@@ -26,7 +26,7 @@ public class RegisterUserValidatorTest
         request.Name = invalidName;
         var result = validator.Validate(request);
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.ErrorMessage == "Name is required.");
+        Assert.Contains(result.Errors, e => e.ErrorMessage == "The name is required.");
     }
 
 }

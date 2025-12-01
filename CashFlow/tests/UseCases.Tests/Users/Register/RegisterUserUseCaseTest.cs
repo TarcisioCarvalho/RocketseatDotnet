@@ -31,7 +31,7 @@ public class RegisterUserUseCaseTest
         await action.Should().ThrowAsync<ErrorOnValidationException>();
 
         Assert.Single(exception.GetErrors());
-        Assert.Equal("Name is required.", exception.GetErrors().First());
+        Assert.Equal("The name is required.", exception.GetErrors().First());
     }
 
     [Fact]
