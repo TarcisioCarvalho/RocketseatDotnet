@@ -14,7 +14,7 @@ public class RegisterUserValidatorTest
 
         Assert.True(result.IsValid);
     }
-
+    
     [Theory]
     [InlineData("")]
     [InlineData("      ")]
