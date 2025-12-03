@@ -12,6 +12,10 @@ public class GetAllExpenseUseCaseTest
     public void Success()
     {
         var user = UserBuilder.Build();
+        var expenses = ExpenseBuilder.Collection(user);
+        var getAllExpenseUseCase = CreateGetAllExpenseUseCase(user, expenses);
+        var result = getAllExpenseUseCase.Execute();
+        Assert.NotNull(result);
     }
 
     private IGetAllExpenseUseCase CreateGetAllExpenseUseCase(User user, IList<Expense> expenses)
