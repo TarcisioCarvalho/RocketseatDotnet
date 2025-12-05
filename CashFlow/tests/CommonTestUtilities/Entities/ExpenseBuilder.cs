@@ -13,9 +13,9 @@ public class ExpenseBuilder
         if (count == 0)
             count = 1;
 
-        for (int i = 0; i < count; i++)
+        for (int i = 1; i <= count; i++)
         {
-            var expense = Build(loggedUser, ++i);
+            var expense = Build(loggedUser, i);
             expenses.Add(expense);
         }
 

@@ -12,13 +12,19 @@ public class GetAllExpenseUseCaseTest
     public async void Success()
     {
         var user = UserBuilder.Build();
-        var expenses = ExpenseBuilder.Collection(user, 5);
+        var expenses = ExpenseBuilder.Collection(user);
         var getAllExpenseUseCase = CreateGetAllExpenseUseCase(user, expenses);
         var result = await getAllExpenseUseCase.Execute();
         Assert.NotNull(result);
         // Tests for confirm unique id on expenses.
         Assert.Equal(result.Expenses.Count, result.Expenses.Select(e => e.Id).Distinct().Count());
 
+        foreach (var item in result.Expenses)
+        {
+            Assert.True(item.Id > 0);
+            Assert.False(string.IsNullOrEmpty(item.Title));
+            Assert.True(item.Value > 0);
+        }
     }
 
     private IGetAllExpenseUseCase CreateGetAllExpenseUseCase(User user, IList<Expense> expenses)
