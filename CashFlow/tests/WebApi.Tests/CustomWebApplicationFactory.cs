@@ -1,7 +1,9 @@
-﻿using CashFlow.Domain.Security.Cryptography;
+﻿using CashFlow.Domain.Entities;
+using CashFlow.Domain.Security.Cryptography;
 using CashFlow.Domain.Security.Tokens;
 using CashFlow.Infrastructure.DataAccess;
 using CommonTestUtilities.Entities;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +33,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 StartDatabase(dbContext, passwordEncripter);
                 _token = tokenGenerator.Generate(_user);
             });
-        
+
     }
 
     public string GetEmail() => _user.Email;
@@ -41,10 +43,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     private void StartDatabase(CashFlowDbContext dbContext, IPasswordEncripter passwordEncripter)
     {
-        _user =  UserBuilder.Build();
+        AddUsers(dbContext, passwordEncripter);
+        AddExpenses(dbContext);
+        dbContext.SaveChanges();
+    }
+
+
+    private void AddUsers(CashFlowDbContext dbContext, IPasswordEncripter passwordEncripter)
+    {
+        _user = UserBuilder.Build();
         _password = _user.Password;
         _user.Password = passwordEncripter.Encript(_password);
         dbContext.Users.Add(_user);
-        dbContext.SaveChanges();
+    }
+    private void AddExpenses(CashFlowDbContext dbContext)
+    {
+        var expense = ExpenseBuilder.Build(_user, 1);
+        dbContext.Expenses.Add(expense);
     }
 }

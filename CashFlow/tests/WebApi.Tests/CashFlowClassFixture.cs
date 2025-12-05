@@ -16,12 +16,19 @@ public class CashFlowClassFixture : IClassFixture<CustomWebApplicationFactory>
         ChangeRequestCulture(culture);
         return await _httpClient.PostAsJsonAsync(requestUri, request);
     }
+
+    protected async Task<HttpResponseMessage> DoGet(string requestUri, string token = "", string culture = "pt-Br")
+    {
+        AutorizeRequest(token);
+        ChangeRequestCulture(culture);
+        return await _httpClient.GetAsync(requestUri);
+    }
     private void AutorizeRequest(string token)
     {
         if (string.IsNullOrEmpty(token))
             return;
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
     private void ChangeRequestCulture(string culture)
