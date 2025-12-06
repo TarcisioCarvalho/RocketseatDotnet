@@ -3,7 +3,6 @@ using CashFlow.Domain.Security.Cryptography;
 using CashFlow.Domain.Security.Tokens;
 using CashFlow.Infrastructure.DataAccess;
 using CommonTestUtilities.Entities;
-using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace WebApi.Tests;
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private CashFlow.Domain.Entities.User _user = null!;
+    private User _user = null!;
     private string _password = string.Empty;
     private string _token = string.Empty;
+    private long _expenseID = 0;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Test")
@@ -40,6 +40,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public string GetName() => _user.Name;
     public string GetPassword() => _password;
     public string GetToken() => _token;
+    public long GetExpenseId() => _expenseID;
 
     private void StartDatabase(CashFlowDbContext dbContext, IPasswordEncripter passwordEncripter)
     {
@@ -58,7 +59,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     }
     private void AddExpenses(CashFlowDbContext dbContext)
     {
-        var expense = ExpenseBuilder.Build(_user, 1);
+        var expense = ExpenseBuilder.Build(_user, null);
+        _expenseID = expense.Id;
         dbContext.Expenses.Add(expense);
     }
 }

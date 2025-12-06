@@ -32,12 +32,11 @@ public class GetExpenseByIdUseCaseTest
         var user = UserBuilder.Build();
         var useCase = CreateGetExpenseByIdUseCase(user, null);
         var result = useCase.Execute(1000);
-        //Assert.Null(result);
         var ex =  await Assert.ThrowsAsync<NotFoundException>(() => result);
         var erros = ex.GetErrors();
         Assert.NotNull(erros);
         Assert.Single(erros);
-        Assert.True(erros.Contains(ResourceErrorsMessages.EXPENSE_NOT_FOUND));
+        Assert.Contains(ResourceErrorsMessages.EXPENSE_NOT_FOUND, erros);
     }
 
     private IGetExpenseByIdUseCase CreateGetExpenseByIdUseCase(User user, Expense? expense)

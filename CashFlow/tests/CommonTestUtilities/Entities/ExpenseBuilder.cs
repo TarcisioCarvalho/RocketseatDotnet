@@ -21,10 +21,10 @@ public class ExpenseBuilder
 
         return expenses;
     }
-    public static Expense Build(User user, long id)
+    public static Expense Build(User user, long? id)
     {
         var expense = new Faker<Expense>()
-            .RuleFor(e => e.Id, _ => id)
+            .RuleFor(e => e.Id, f => id ?? f.UniqueIndex)
             .RuleFor(e => e.Title, f => f.Commerce.ProductName())
             .RuleFor(e => e.PaymentType, f => f.PickRandom<PaymentType>())
             .RuleFor(e => e.Value, f => f.Finance.Amount())
