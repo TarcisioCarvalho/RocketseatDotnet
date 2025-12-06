@@ -6,13 +6,21 @@ namespace CommonTestUtilities.Repositories;
 public class ExpensesReadOnlyRepositoryBuilder
 {
     private readonly Mock<IExepensesReadOnlyRepository> _exepensesReadOnlyRepository;
-    public ExpensesReadOnlyRepositoryBuilder() 
-    { 
+    public ExpensesReadOnlyRepositoryBuilder()
+    {
         _exepensesReadOnlyRepository = new Mock<IExepensesReadOnlyRepository>();
     }
     public ExpensesReadOnlyRepositoryBuilder GetAll(User user, IList<Expense> expenses)
     {
         _exepensesReadOnlyRepository.Setup(repository => repository.GetAll(user)).ReturnsAsync(expenses);
+        return this;
+    }
+
+    public ExpensesReadOnlyRepositoryBuilder GetById(User user, Expense? expense)
+    {
+        if (expense is not null)
+            _exepensesReadOnlyRepository.Setup(repository => repository.GetById(expense.Id, user)).ReturnsAsync(expense);
+
         return this;
     }
 
