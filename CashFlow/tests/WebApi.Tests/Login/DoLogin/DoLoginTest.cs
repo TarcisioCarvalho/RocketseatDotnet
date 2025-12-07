@@ -17,9 +17,9 @@ public class DoLoginTest : CashFlowClassFixture
 
     public DoLoginTest(CustomWebApplicationFactory factory) : base(factory)
     {
-        _email = factory.GetEmail();
-        _name = factory.GetName();
-        _password = factory.GetPassword();
+        _email = factory.UserTeamMember.GetEmail();
+        _name = factory.UserTeamMember.GetName();
+        _password = factory.UserTeamMember.GetPassword();
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class DoLoginTest : CashFlowClassFixture
     public async Task Error_Invalid_Login(string culture)
     {
         var request = RequestJsonLoginBuilder.Build(null);
-   
+
         var response = await DoPost(requestUri: requestUri, request, culture: culture);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 

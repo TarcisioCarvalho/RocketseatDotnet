@@ -8,7 +8,7 @@ public class GetAllExpenseTest : CashFlowClassFixture
     private string _token = string.Empty;
     public GetAllExpenseTest(CustomWebApplicationFactory factory) : base(factory)
     {
-        _token = factory.GetToken();
+        _token = factory.UserTeamMember.GetToken();
     }
 
     [Fact]

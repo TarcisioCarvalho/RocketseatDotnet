@@ -3,6 +3,7 @@ using CommonTestUtilities.Requests;
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using WebApi.Tests.InlineData;
 
 namespace WebApi.Tests.Expenses.Register;
 public class RegisterExpenseTest : CashFlowClassFixture
@@ -11,7 +12,7 @@ public class RegisterExpenseTest : CashFlowClassFixture
     private string _token = string.Empty;
     public RegisterExpenseTest(CustomWebApplicationFactory factory) : base(factory)
     {
-        _token = factory.GetToken();
+        _token = factory.UserTeamMember.GetToken();
     }
 
     [Fact]
@@ -26,15 +27,15 @@ public class RegisterExpenseTest : CashFlowClassFixture
         var result = await JsonDocument.ParseAsync(body);
         Assert.Equal(request.Title, result.RootElement.GetProperty("title").GetString());
     }
-    //[Theory]
-    //[ClassData(typeof(CultureInlineDataTest))]
+    [Theory]
+    [ClassData(typeof(CultureInlineDataTest))]
     public async Task Error_Title_Empty(string cultureInfo)
     {
         var request = RequestRegisterExpenseJsonBuilder.Build();
         request.Title = string.Empty;
 
     
-        var response = await DoPost(METHOD_URL, request, _token);
+        var response = await DoPost(METHOD_URL, request, _token, culture: cultureInfo);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var body = await response.Content.ReadAsStreamAsync();
