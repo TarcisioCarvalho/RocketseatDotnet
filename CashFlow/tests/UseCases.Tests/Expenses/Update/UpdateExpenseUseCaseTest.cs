@@ -46,6 +46,23 @@ public class UpdateExpenseUseCaseTest
         Assert.Single(exception.GetErrors());
         Assert.Equal(ResourceErrorsMessages.TITLE_REQUIRED, exception.GetErrors().First());
     }
+
+    [Fact]
+    public async Task Error_Expense_Not_Found()
+    {
+        var user = UserBuilder.Build();
+        var request = RequestRegisterExpenseJsonBuilder.Build();
+        var expense = ExpenseBuilder.Build(user, 1);
+
+        var useCase = CreateUpdateUseCase(user, expense);
+
+        Func<Task> act = async () => await useCase.Execute(request, 5);
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => act());
+
+        Assert.Single(exception.GetErrors());
+        Assert.Equal(ResourceErrorsMessages.EXPENSE_NOT_FOUND, exception.GetErrors().First());
+    }
+
     private IUpdateExpenseUseCase CreateUpdateUseCase(User user, Expense? expense)
     {
         var unitOfWork = UnitOfWorkBuilder.Build();
