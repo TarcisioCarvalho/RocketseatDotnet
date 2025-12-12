@@ -1,6 +1,8 @@
 ﻿using CashFlow.Application.UseCases.Expenses.Update;
 using CashFlow.Domain.Entities;
 using CashFlow.Domain.Enums;
+using CashFlow.Exception;
+using CashFlow.Exception.ExceptionBase;
 using CommonTestUtilities.Entities;
 using CommonTestUtilities.LoggedUser;
 using CommonTestUtilities.Mapper;
@@ -26,6 +28,23 @@ public class UpdateExpenseUseCaseTest
         Assert.Equal((PaymentType)request.PaymentType, expense.PaymentType);
         Assert.Equal(request.Date, expense.Date);
 
+    }
+
+    [Fact]
+    public async Task Error_Title_Empty()
+    {
+        var user = UserBuilder.Build();
+        var request = RequestRegisterExpenseJsonBuilder.Build();
+        var expense = ExpenseBuilder.Build(user, null);
+        request.Title = string.Empty;
+
+        var useCase = CreateUpdateUseCase(user, expense);
+        
+        Func<Task> act = async () => await useCase.Execute(request, expense.Id);
+        var exception = await Assert.ThrowsAsync<ErrorOnValidationException>(() => act());
+
+        Assert.Single(exception.GetErrors());
+        Assert.Equal(ResourceErrorsMessages.TITLE_REQUIRED, exception.GetErrors().First());
     }
     private IUpdateExpenseUseCase CreateUpdateUseCase(User user, Expense? expense)
     {
