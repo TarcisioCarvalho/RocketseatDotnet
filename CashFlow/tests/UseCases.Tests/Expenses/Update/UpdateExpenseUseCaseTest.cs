@@ -1,9 +1,11 @@
 ﻿using CashFlow.Application.UseCases.Expenses.Update;
 using CashFlow.Domain.Entities;
+using CashFlow.Domain.Enums;
 using CommonTestUtilities.Entities;
 using CommonTestUtilities.LoggedUser;
 using CommonTestUtilities.Mapper;
 using CommonTestUtilities.Repositories;
+using CommonTestUtilities.Requests;
 
 namespace UseCases.Tests.Expenses.Update;
 public class UpdateExpenseUseCaseTest
@@ -12,16 +14,26 @@ public class UpdateExpenseUseCaseTest
     public async Task Success()
     {
         var user = UserBuilder.Build();
-        var useCase = CreateUpdateUseCase(user);
-       // var result = useCase.Execute();
+        var request = RequestRegisterExpenseJsonBuilder.Build();
+        var expense = ExpenseBuilder.Build(user, null);
+
+        var useCase = CreateUpdateUseCase(user, expense);
+        await useCase.Execute(request, expense.Id);
+
+        Assert.Equal(expense.Title, request.Title);
+        Assert.Equal(request.Description, expense.Description);
+        Assert.Equal(request.Value, expense.Value);
+        Assert.Equal((PaymentType)request.PaymentType, expense.PaymentType);
+        Assert.Equal(request.Date, expense.Date);
+
     }
-    private IUpdateExpenseUseCase CreateUpdateUseCase(User user)
+    private IUpdateExpenseUseCase CreateUpdateUseCase(User user, Expense? expense)
     {
         var unitOfWork = UnitOfWorkBuilder.Build();
         var loggedUser = LoggedUserBuilder.Build(user);
         var mapper = MapperBuilder.Build();
-        var repository = new ExpensesUpdateOnlyRepositoryBuilder().Build();
+        var repository = new ExpensesUpdateOnlyRepositoryBuilder().GetById(expense: expense, user: user).Build();
 
-        return new UpdateExpenseUseCase(expenseRepository: repository, unitOfWork: unitOfWork, mapper: mapper, loggedUser:loggedUser);
+        return new UpdateExpenseUseCase(expenseRepository: repository, unitOfWork: unitOfWork, mapper: mapper, loggedUser: loggedUser);
     }
 }
