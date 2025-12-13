@@ -30,6 +30,13 @@ public class CashFlowClassFixture : IClassFixture<CustomWebApplicationFactory>
         ChangeRequestCulture(culture);
         return await _httpClient.DeleteAsync(requestUri);
     }
+
+    protected async Task<HttpResponseMessage> DoPut(string requestUri, object request, string token = "", string culture = "pt-Br")
+    {
+        AutorizeRequest(token);
+        ChangeRequestCulture(culture);
+        return await _httpClient.PutAsJsonAsync(requestUri, request);
+    }
     private void AutorizeRequest(string token)
     {
         if (string.IsNullOrEmpty(token))
