@@ -15,6 +15,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public ExpenseIdentityManager Expense { get; private set; } = default!;
     public UserIdentityManager UserTeamMember { get; private set; } = default!;
+    public UserIdentityManager UserAdminMember { get; private set; } = default!
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Test")
