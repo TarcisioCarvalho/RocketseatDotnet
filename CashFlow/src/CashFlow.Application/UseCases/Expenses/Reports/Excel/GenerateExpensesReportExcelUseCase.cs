@@ -1,22 +1,26 @@
 ﻿using CashFlow.Domain.Enums;
 using CashFlow.Domain.Repositories.Expenses;
+using CashFlow.Domain.Services.LoggedUser;
 using ClosedXML.Excel;
 
 namespace CashFlow.Application.UseCases.Expenses.Reports.Excel;
 public class GenerateExpensesReportExcelUseCase : IGenerateExpensesReportExcelUseCase
 {
     private readonly IExepensesReadOnlyRepository _exepensesReadOnlyRepository;
-    public GenerateExpensesReportExcelUseCase(IExepensesReadOnlyRepository exepensesReadOnlyRepository)
+    private readonly ILoggedUser _loggedUser;
+    public GenerateExpensesReportExcelUseCase(IExepensesReadOnlyRepository exepensesReadOnlyRepository, ILoggedUser loggedUser)
     {
         _exepensesReadOnlyRepository = exepensesReadOnlyRepository;
+        _loggedUser = loggedUser;
     }
     public async Task<byte[]> Execute(DateOnly month)
     {
-        var expenses = await _exepensesReadOnlyRepository.FilterByMonth(month);
+        var loggedUser = await _loggedUser.Get();
+        var expenses = await _exepensesReadOnlyRepository.FilterByMonth(loggedUser, month);
         if(expenses.Count == 0)
             return [];
         var workbook = new XLWorkbook();
-        workbook.Author = "CashFlow Application";
+        workbook.Author = loggedUser.Name;
         workbook.Style.Font.FontName = "Segoe UI";
         workbook.Style.Font.FontSize = 12;
         
