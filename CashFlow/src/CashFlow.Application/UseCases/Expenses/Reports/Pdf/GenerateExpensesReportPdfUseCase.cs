@@ -1,6 +1,5 @@
 ﻿
 using CashFlow.Application.UseCases.Expenses.Reports.Pdf.Fonts;
-using CashFlow.Domain.Entities;
 using CashFlow.Domain.Repositories.Expenses;
 using CashFlow.Domain.Services.LoggedUser;
 using MigraDoc.DocumentObjectModel;
