@@ -14,7 +14,7 @@ public class UpdateExpenseTest : CashFlowClassFixture
     public UpdateExpenseTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _token = factory.UserTeamMember.GetToken();
-        _expenseId = factory.Expense.GetExpenseId();
+        _expenseId = factory.ExpenseTeamMember.GetExpenseId();
     }
     [Fact]
     public async Task Success()
