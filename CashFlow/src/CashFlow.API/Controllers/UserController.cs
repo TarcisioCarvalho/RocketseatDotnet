@@ -1,6 +1,8 @@
-﻿using CashFlow.Application.UseCases.Users.Register;
+﻿using CashFlow.Application.UseCases.Users.Profile;
+using CashFlow.Application.UseCases.Users.Register;
 using CashFlow.Communication.Requests;
 using CashFlow.Communication.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CashFlow.API.Controllers;
@@ -15,5 +17,13 @@ public class UserController : ControllerBase
     {
         var response = await registerUserUseCase.Execute(request);
         return Created(string.Empty, response);
+    }
+    [HttpGet]
+    [Authorize]
+    [ProducesResponseType(typeof(ResponseUserProfileJson), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfile([FromServices] IGetUserProfileUseCase getUserProfileUseCase)
+    {
+        var result = await getUserProfileUseCase.Execute();
+        return Ok(result);
     }
 }
