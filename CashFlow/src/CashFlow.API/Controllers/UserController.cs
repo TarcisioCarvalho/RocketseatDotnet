@@ -18,6 +18,7 @@ public class UserController : ControllerBase
         var response = await registerUserUseCase.Execute(request);
         return Created(string.Empty, response);
     }
+
     [HttpGet]
     [Authorize]
     [ProducesResponseType(typeof(ResponseUserProfileJson), StatusCodes.Status200OK)]
@@ -25,5 +26,14 @@ public class UserController : ControllerBase
     {
         var result = await getUserProfileUseCase.Execute();
         return Ok(result);
+    }
+
+    [HttpPut]
+    [Authorize]
+    [ProducesResponseType(typeof(ResponseUserProfileJson), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateProfile([FromBody] RequestUpdateUserJson requestUpdateUserJson)
+    {
+
     }
 }
