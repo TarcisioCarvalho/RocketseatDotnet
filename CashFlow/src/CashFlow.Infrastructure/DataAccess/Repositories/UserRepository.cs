@@ -37,6 +37,6 @@ internal class UserRepository : IUserReadOnlyRepository, IUserWriteOnlyRepositor
 
     public void Update(User user)
     {
-        throw new NotImplementedException();
+       _dbContext.Users.Update(user);
     }
 }

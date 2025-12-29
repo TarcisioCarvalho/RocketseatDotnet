@@ -33,9 +33,10 @@ public class UserController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(ResponseUserProfileJson), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateProfile([FromBody] RequestUpdateUserJson requestUpdateUserJson, [FromServices] IUpdateUserUseCase updateUserUseCase)
     {
         await updateUserUseCase.Execute(requestUpdateUserJson);
-        return NotFound();
+        return NoContent();
     }
 }
