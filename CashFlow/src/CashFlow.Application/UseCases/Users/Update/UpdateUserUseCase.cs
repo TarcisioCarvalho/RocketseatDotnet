@@ -6,7 +6,7 @@ using CashFlow.Domain.Services.LoggedUser;
 using CashFlow.Exception.ExceptionBase;
 
 namespace CashFlow.Application.UseCases.Users.Update;
-internal class UpdateUserUseCase : IUpdateUserUseCase
+public class UpdateUserUseCase : IUpdateUserUseCase
 {
     private readonly IUserReadOnlyRepository _userRepository;
     private readonly ILoggedUser _loggedUser;
@@ -40,7 +40,7 @@ internal class UpdateUserUseCase : IUpdateUserUseCase
     {
         var result = new UpdateUserValidator().Validate(requestUpdateUserJson);
         var emailAlreadyExists = await _userRepository.ExistActiveUserWith(requestUpdateUserJson.Email);
-        if (emailAlreadyExists)
+        if (emailAlreadyExists && !user.Email.Equals(requestUpdateUserJson.Email))
         {
             result.AddError("Email", "Já existe um usuário cadastrado com este e-mail.");
         }
