@@ -17,7 +17,8 @@ public class UpdateUserUseCaseTest
         var useCase = CreateUseCase(user);
         var request = RequestUpdateUserJsonBuilder.Build();
         await useCase.Execute(request);
-
+        Assert.Equal(user.Name, request.Name);
+        Assert.Equal(user.Email, request.Email);
     }
 
 
