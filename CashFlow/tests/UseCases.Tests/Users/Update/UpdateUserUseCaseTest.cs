@@ -21,6 +21,15 @@ public class UpdateUserUseCaseTest
         Assert.Equal(user.Email, request.Email);
     }
 
+    [Fact]
+    public async Task Error_Empty_Title()
+    {
+        var user = UserBuilder.Build();
+        var useCase = CreateUseCase(user);
+        var request = RequestUpdateUserJsonBuilder.Build();
+        await useCase.Execute(request);
+    }
+
 
     private IUpdateUserUseCase CreateUseCase(User user)
     {
