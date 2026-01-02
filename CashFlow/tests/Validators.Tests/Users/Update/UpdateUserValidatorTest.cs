@@ -24,6 +24,7 @@ public class UpdateUserValidatorTest
         request.Name = name;
         var result = validator.Validate(request);
         Assert.False(result.IsValid);
+        Assert.Single(result.Errors);
     }
 
     [Theory]
