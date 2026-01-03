@@ -1,4 +1,5 @@
-﻿using CashFlow.Application.UseCases.Users.Profile;
+﻿using CashFlow.Application.UseCases.Users.ChangePassword;
+using CashFlow.Application.UseCases.Users.Profile;
 using CashFlow.Application.UseCases.Users.Register;
 using CashFlow.Application.UseCases.Users.Update;
 using CashFlow.Communication.Requests;
@@ -31,12 +32,23 @@ public class UserController : ControllerBase
 
     [HttpPut]
     [Authorize]
-    [ProducesResponseType(typeof(ResponseUserProfileJson), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateProfile([FromBody] RequestUpdateUserJson requestUpdateUserJson, [FromServices] IUpdateUserUseCase updateUserUseCase)
     {
         await updateUserUseCase.Execute(requestUpdateUserJson);
+        return NoContent();
+    }
+
+    [HttpPut]
+    [Route("change-password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePassword([FromBody] RequestChangePasswordJson requestChangePasswordJson, [FromServices] IChangePasswordUseCase useCase)
+    {
+        await useCase.Execute(requestChangePasswordJson);
         return NoContent();
     }
 }

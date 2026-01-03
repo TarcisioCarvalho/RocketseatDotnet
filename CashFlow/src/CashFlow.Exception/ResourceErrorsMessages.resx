@@ -135,6 +135,9 @@
   <data name="NAME_REQUIRED" xml:space="preserve">
     <value>The name is required.</value>
   </data>
+  <data name="PASSWROD_DIFERENT_CURRENT_PASSWORD" xml:space="preserve">
+    <value>The Password is difernt for the current password</value>
+  </data>
   <data name="PAYMENT_TYPE_INVALID" xml:space="preserve">
     <value>Type de paiement invalide.</value>
   </data>
