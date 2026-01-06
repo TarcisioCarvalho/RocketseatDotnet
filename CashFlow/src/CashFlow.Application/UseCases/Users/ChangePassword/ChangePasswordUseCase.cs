@@ -45,7 +45,7 @@ public class ChangePasswordUseCase : IChangePasswordUseCase
         var result = valdiator.Validate(requestChangePasswordJson);
         var passwordMatch = _passwordEncripter.Verify(requestChangePasswordJson.Password, loggedUser.Password);
         if (passwordMatch is false)
-            result.Errors.Add(new ValidationFailure(string.Empty, ResourceErrorsMessages.PASSWROD_DIFERENT_CURRENT_PASSWORD));
+            result.Errors.Add(new ValidationFailure(string.Empty, ResourceErrorsMessages.PASSWORD_DIFERENT_CURRENT_PASSWORD));
         if (result.IsValid is false)
         {
             var errors = result.Errors.Select(e => e.ErrorMessage).ToList();

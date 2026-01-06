@@ -135,7 +135,7 @@
   <data name="NAME_REQUIRED" xml:space="preserve">
     <value>Ora Pois o nome tem que ser dado.</value>
   </data>
-  <data name="PASSWROD_DIFERENT_CURRENT_PASSWORD" xml:space="preserve">
+  <data name="PASSWORD_DIFERENT_CURRENT_PASSWORD" xml:space="preserve">
     <value>Ora pois a palavra chave é diferente da palavra chave atual.</value>
   </data>
   <data name="PAYMENT_TYPE_INVALID" xml:space="preserve">

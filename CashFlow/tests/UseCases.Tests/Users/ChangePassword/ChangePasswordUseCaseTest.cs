@@ -1,5 +1,6 @@
 ﻿using CashFlow.Application.UseCases.Users.ChangePassword;
 using CashFlow.Domain.Entities;
+using CashFlow.Exception;
 using CashFlow.Exception.ExceptionBase;
 using CommonTestUtilities.Entities;
 using CommonTestUtilities.LoggedUser;
@@ -30,8 +31,18 @@ public class ChangePasswordUseCaseTest
         var exception = await Assert.ThrowsAsync<ErrorOnValidationException>(() => act());
         Assert.Single(exception.GetErrors());
         Assert.Equal("Password is required.", exception.GetErrors().First());
+    }
 
-        // Password is required.
+    [Fact]
+    public async Task Error_Current_Password_Is_Diferent()
+    {
+        var user = UserBuilder.Build();
+        var request = RequestJsonChangePasswordBuilder.Build();
+        var useCase = CreateUseCase(user);
+        var act = async () => await useCase.Execute(request);
+        var exception = await Assert.ThrowsAsync<ErrorOnValidationException>(() => act());
+        Assert.Single(exception.GetErrors());
+        Assert.Equal(ResourceErrorsMessages.PASSWORD_DIFERENT_CURRENT_PASSWORD, exception.GetErrors().First());
     }
     private IChangePasswordUseCase CreateUseCase(User user, string? password = null)
     {
