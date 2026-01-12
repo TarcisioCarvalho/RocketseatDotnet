@@ -133,6 +133,15 @@ namespace CashFlow.Exception {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Tag is not suported.
+        /// </summary>
+        public static string TAG_TYPE_NOT_SUPORTED {
+            get {
+                return ResourceManager.GetString("TAG_TYPE_NOT_SUPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Le titre ne doit pas dépasser 100 caractères..
         /// </summary>
         public static string TITLE_CHARACTERS_LIMIT {

@@ -138,6 +138,9 @@
   <data name="PAYMENT_TYPE_INVALID" xml:space="preserve">
     <value>Tipo de pagamento invalido.</value>
   </data>
+  <data name="TAG_TYPE_NOT_SUPORTED" xml:space="preserve">
+    <value>Tag Não é validada BR</value>
+  </data>
   <data name="TITLE_CHARACTERS_LIMIT" xml:space="preserve">
     <value>O titulo não pode exceder 100 caracteres.</value>
   </data>
