@@ -26,9 +26,10 @@ public class AutoMapping : Profile
     }
     private void EntityToResponse()
     {
+        CreateMap<Expense, ResponseExpenseJson>()
+            .ForMember(dest => dest.Tags, config => config.MapFrom(source => source.Tags.Select(tag => tag.TagValue)));
         CreateMap<Expense, ResponseRegisterExpenseJson>();
         CreateMap<Expense, ResponseShortExpenseJson>();
-        CreateMap<Expense, ResponseExpenseJson>();
         CreateMap<User, ResponseUserProfileJson>();
     }
 }
