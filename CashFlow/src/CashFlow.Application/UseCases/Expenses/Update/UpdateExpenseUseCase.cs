@@ -26,9 +26,10 @@ public class UpdateExpenseUseCase : IUpdateExpenseUseCase
     public async Task Execute(RequestExpenseJson expenseRequest, long id)
     {
         Validate(expenseRequest);
-        var user =  await _loggedUser.Get();
+        var user = await _loggedUser.Get();
         var expense = await _expenseRepository.GetById(id, user);
         if (expense is null) throw new NotFoundException(ResourceErrorsMessages.EXPENSE_NOT_FOUND);
+        expense.Tags.Clear();
         _mapper.Map(expenseRequest, expense);
         _expenseRepository.Update(expense);
         await _unitOfWork.Commit();
