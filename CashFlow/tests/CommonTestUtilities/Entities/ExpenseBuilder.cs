@@ -31,6 +31,7 @@ public class ExpenseBuilder
             .RuleFor(e => e.Description, f => f.Commerce.ProductDescription())
             .RuleFor(e => e.Date, f => f.Date.Past())
             .RuleFor(e => e.UserId, _ => user.Id)
+            .RuleFor(e => e.Tags, f => new Tag() )
             .Generate();
 
         return expense;
