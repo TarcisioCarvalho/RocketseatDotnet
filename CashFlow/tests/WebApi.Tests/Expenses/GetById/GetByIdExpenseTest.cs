@@ -28,6 +28,8 @@ public class GetByIdExpenseTest : CashFlowClassFixture
         Assert.True(date <= DateTime.Now);
         var paymentType = response.RootElement.GetProperty("paymentType").GetInt32();
         Assert.True(Enum.IsDefined(typeof(PaymentType), paymentType));
+
+        Assert.NotNull(response.RootElement.GetProperty("tags").EnumerateArray());
     }
 
 

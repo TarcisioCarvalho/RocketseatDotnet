@@ -24,6 +24,10 @@ public class GetExpenseByIdUseCaseTest
         Assert.Equal(expense.Description, result.Description);
         Assert.Equal(expense.Value, result.Value);
         Assert.Equal(expense.PaymentType, (PaymentType)result.PaymentType);
+        Assert.NotNull(result.Tags);
+        Assert.Equal(
+         expense.Tags.Select(tag => (int)tag.TagValue).OrderBy(x => x),
+         result.Tags.Select(tag => (int)tag).OrderBy(x => x));
     }
 
     [Fact]
@@ -32,7 +36,7 @@ public class GetExpenseByIdUseCaseTest
         var user = UserBuilder.Build();
         var useCase = CreateGetExpenseByIdUseCase(user, null);
         var result = useCase.Execute(1000);
-        var ex =  await Assert.ThrowsAsync<NotFoundException>(() => result);
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() => result);
         var erros = ex.GetErrors();
         Assert.NotNull(erros);
         Assert.Single(erros);

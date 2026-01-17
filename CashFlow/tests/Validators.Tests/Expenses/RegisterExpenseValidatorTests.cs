@@ -2,9 +2,7 @@
 using CashFlow.Exception;
 using CommonTestUtilities.Requests;
 
-
-
-namespace Validators.Tests.Expenses.Register;
+namespace Validators.Tests.Expenses;
 public class RegisterExpenseValidatorTests
 {
     [Fact]
@@ -43,5 +41,19 @@ public class RegisterExpenseValidatorTests
         Assert.False(result.IsValid);
         Assert.Single(result.Errors);
         Assert.Equal(ResourceErrorsMessages.TITLE_CHARACTERS_LIMIT, result.Errors[0].ErrorMessage);
+    }
+
+    [Fact]
+    public void Error_Tag_Invalid()
+    {
+        var validator = new ExpenseValidator();
+        var request = RequestRegisterExpenseJsonBuilder.Build();
+        request.Tags.Add((CashFlow.Communication.Enums.Tag)100);
+
+        var result = validator.Validate(request);
+
+        Assert.False(result.IsValid);
+        Assert.Single(result.Errors);
+        Assert.Equal(ResourceErrorsMessages.TAG_TYPE_NOT_SUPORTED, result.Errors[0].ErrorMessage);
     }
 }
